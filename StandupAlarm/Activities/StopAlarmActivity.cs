@@ -5,6 +5,7 @@ using System.Text;
 
 using Android.App;
 using Android.Content;
+using Android.Media;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
@@ -15,6 +16,8 @@ namespace StandupAlarm.Activities
 	public class StopAlarmActivity : Activity
 	{
 		#region Constants
+
+		private static readonly long[] VIBRATION_PATTERN = new long[] { 0, 500, 500, 500, 500, 500};
 
 		#endregion
 
@@ -39,6 +42,10 @@ namespace StandupAlarm.Activities
 			Window.AddFlags(WindowManagerFlags.ShowWhenLocked);
 			Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 			Window.AddFlags(WindowManagerFlags.TurnScreenOn);
+
+			Vibrator vb = this.GetSystemService(Java.Lang.Class.FromType(typeof(Vibrator))) as Vibrator;
+			if (vb != null && vb.HasVibrator)
+				vb.Vibrate(VIBRATION_PATTERN, -1);
 
 			base.OnCreate(savedInstanceState);
 
