@@ -8,12 +8,14 @@ using Android.Content;
 using Android.Media;
 using Android.OS;
 using Android.Runtime;
+using Android.Speech.Tts;
 using Android.Views;
 using Android.Widget;
+using StandupAlarm.Models.StandupMessengers;
 
 namespace StandupAlarm.Activities
 {
-	public class StopAlarmActivity : Activity
+	public class StopAlarmActivity : Activity, TextToSpeech.IOnInitListener
 	{
 		#region Constants
 
@@ -22,6 +24,10 @@ namespace StandupAlarm.Activities
 		#endregion
 
 		#region Fields
+
+		private TextToSpeech speechEngine;
+
+		private IStandupMessenger currentMessenger;
 
 		#endregion
 
@@ -52,6 +58,8 @@ namespace StandupAlarm.Activities
 			SetContentView(Resource.Layout.StopAlarmView);
 
 			ButtonStopAlarm.Click += ButtonStopAlarm_Click;
+
+			this.speechEngine = new TextToSpeech(this, this);
 		}
 
 		#endregion
@@ -60,6 +68,7 @@ namespace StandupAlarm.Activities
 
 		protected override void OnStop()
 		{
+			this.speechEngine.Stop();
 			base.OnStop();
 		}
 
@@ -74,7 +83,19 @@ namespace StandupAlarm.Activities
 
 		private void ButtonStopAlarm_Click(object sender, EventArgs e)
 		{
+			if (currentMessenger != null)
+				currentMessenger.Stop();
 			this.Finish();
+		}
+
+		public void OnInit(OperationResult status)
+		{
+			// Occurs when the speech engine is initialized
+			System.Diagnostics.Debug.Assert(currentMessenger == null);
+
+			// TODO: Don't play this when intialized, play this at the right time
+			currentMessenger = MessengerFactory.CreateMessenger(speechEngine, DateTime.Now);
+			currentMessenger.Start();
 		}
 
 		#endregion
