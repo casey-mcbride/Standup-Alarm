@@ -34,7 +34,7 @@ namespace StandupAlarm.Models.StandupMessengers
 			int random = r.Next(0, phrases.Length);
 			string phrase = phrases[random];
 
-			return new SimplePhraseMessenger(speechEngine, phrase);
+			return new SimplePhraseMessenger(speechEngine, phrase, 5);
 		}
 	}
 }

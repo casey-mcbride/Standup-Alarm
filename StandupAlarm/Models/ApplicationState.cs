@@ -20,17 +20,33 @@ namespace StandupAlarm.Models
 	{
 		// TODOS
 		// Start the alarm listener on boot
-		// Way to turn the application off
+		// Way to disable the application 
 		// On/off switch by hitting the side buttons?
 		// Add cell tower filter
 
 		#region Constants
+
+		// TODO(Casey): Switch with a flag that tells it to skip next wednesday, maybe?
+		//System.Casey.Debug.Assert(Environment.UserName == "Casey" && Environment.UserDomainName == "Reamde", "Unfinished code that shouldn't have been checked in.");
 
 		/// <summary>
 		/// Wednesday to skip, skip wednesdays every 2 weeks from this relative date.
 		/// </summary>
 		private static readonly DateTime WEDNESDAY_TO_SKIP = DateTime.Parse("Wed 18 April 2018");
 
+		/// <summary>
+		/// How much notice the user gets before the alarm actually goes off.
+		/// </summary>
+		public static readonly TimeSpan SHUT_OFF_WARNING_TIME
+#if DEBUG
+			= TimeSpan.FromSeconds(3);
+#else
+			= TimeSpan.FromSeconds(15);
+#endif
+
+		/// <summary>
+		/// When the alarm goes off from the start of the day.
+		/// </summary>
 		private static readonly TimeSpan ALARM_TIME_SINCE_DAY_START = TimeSpan.FromHours(11);
 
 		/// <summary>

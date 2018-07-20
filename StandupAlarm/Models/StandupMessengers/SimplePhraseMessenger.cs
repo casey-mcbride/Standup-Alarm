@@ -21,8 +21,18 @@ namespace StandupAlarm.Models.StandupMessengers
 	{
 		#region Constants
 
-		// TODO: Does this need to change for each utterance added to the queue
+		// TODO(Casey): Does this need to change for each utterance added to the queue
 		public const string UTTERANCE_ID = "ccc6886f-b2e6-4fa3-a3b7-cdf1746d9151";
+
+		public const float INITIAL_PITCH = .8f;
+		public const float PITCH_INCREASE = .6f;
+		public const float INITIAL_SPEACH_RATE = .8f;
+		public const float SPEACH_RATE_INCREASE = .2f;
+
+		/// <summary>
+		/// The pause between saying the phrase.
+		/// </summary>
+		private static readonly TimeSpan pauseTime = TimeSpan.FromSeconds(1);
 
 		#endregion
 
@@ -32,6 +42,8 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		private string phrase;
 
+		private int numRepeats;
+
 		#endregion
 
 		#region Properties
@@ -40,10 +52,11 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		#region Initializers
 
-		public SimplePhraseMessenger(TextToSpeech speechEngine, string phrase)
+		public SimplePhraseMessenger(TextToSpeech speechEngine, string phrase, int numRepeats)
 		{
 			this.speechEngine = speechEngine;
 			this.phrase = phrase;
+			this.numRepeats = numRepeats;
 			AudioAttributes.Builder b = new AudioAttributes.Builder();
 			b.SetFlags(AudioFlags.LowLatency);
 			b.SetUsage(AudioUsageKind.Alarm);
@@ -61,12 +74,23 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		public void Start()
 		{
-			TimeSpan delay = TimeSpan.FromSeconds(1);
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < numRepeats - 1; i++)
 			{
-				speechEngine.Speak(phrase, QueueMode.Add, new Bundle(), UTTERANCE_ID);
-				speechEngine.PlaySilentUtterance((int)delay.TotalMilliseconds, QueueMode.Add, UTTERANCE_ID);
+				// Increase the pitch for a comical result
+				speechEngine.SetPitch(INITIAL_PITCH + i * PITCH_INCREASE);
+				speechEngine.SetSpeechRate(INITIAL_SPEACH_RATE + i * SPEACH_RATE_INCREASE);
+				sayThePhrase();
 			}
+
+			speechEngine.SetPitch(INITIAL_PITCH);
+			speechEngine.SetSpeechRate(INITIAL_SPEACH_RATE);
+			sayThePhrase();
+		}
+
+		private void sayThePhrase()
+		{
+			speechEngine.Speak(phrase, QueueMode.Add, new Bundle(), UTTERANCE_ID);
+			speechEngine.PlaySilentUtterance((int)pauseTime.TotalMilliseconds, QueueMode.Add, UTTERANCE_ID);
 		}
 
 		public void Stop()
