@@ -3,6 +3,7 @@ using Android.Widget;
 using Android.OS;
 using StandupAlarm.Models;
 using System;
+using StandupAlarm.Persistance;
 
 namespace StandupAlarm.Activities
 {
@@ -19,12 +20,16 @@ namespace StandupAlarm.Activities
 
 		#region Properties
 
-		private Button TestAlarmButton
+		private Switch SwitchIsAlarmOn
+		{
+			get { return FindViewById<Switch>(Resource.Id.switchIsAlarmOn); }
+		}
+		private Button ButtonTestAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestAlarm); }
 		}
 
-		private Button TestStopAlarmActivity
+		private Button ButtonStopAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestStopAlarmActivity); }
 		}
@@ -39,8 +44,11 @@ namespace StandupAlarm.Activities
 
 			SetContentView(Resource.Layout.Main);
 
-			TestAlarmButton.Click += TestAlarmButton_Clicked;
-			TestStopAlarmActivity.Click += TestStopAlarmActivity_Click;
+			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
+			ButtonStopAlarm.Click += TestStopAlarmActivity_Click;
+
+			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
+			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
 		}
 
 		#endregion
@@ -50,6 +58,12 @@ namespace StandupAlarm.Activities
 		#endregion
 
 		#region Event Handlers
+
+		private void SwitchIsAlarmOn_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
+		{
+			// TODO(Casey): Update the app's timer when this property is changed
+			Settings.SetIsOn(e.IsChecked, this);
+		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
 		{
