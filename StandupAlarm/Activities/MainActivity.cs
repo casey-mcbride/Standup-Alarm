@@ -34,6 +34,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Button>(Resource.Id.buttonTestStopAlarmActivity); }
 		}
 
+		private Button ButtonCancelPendingAlarms
+		{
+			get { return FindViewById<Button>(Resource.Id.buttonCancelPending); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -46,6 +51,7 @@ namespace StandupAlarm.Activities
 
 			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
 			ButtonStopAlarm.Click += TestStopAlarmActivity_Click;
+			ButtonCancelPendingAlarms.Click += ButtonCancelPendingAlarms_Click;
 
 			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
 			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
@@ -61,8 +67,14 @@ namespace StandupAlarm.Activities
 
 		private void SwitchIsAlarmOn_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
-			// TODO(Casey): Update the app's timer when this property is changed
 			Settings.SetIsOn(e.IsChecked, this);
+
+			// TODO(Casey): Move this to some global startup place
+			// Update the apps timer
+			if (Settings.GetIsAlarmOn(this))
+				ApplicationState.GetInstance(this).StartAlarm();
+			else
+				ApplicationState.GetInstance(this).ResetAlarms();
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
@@ -76,6 +88,11 @@ namespace StandupAlarm.Activities
 		private void TestStopAlarmActivity_Click(object sender, EventArgs e)
 		{
 			this.StartActivity(typeof(StopAlarmActivity));
+		}
+
+		private void ButtonCancelPendingAlarms_Click(object sender, EventArgs e)
+		{
+			ApplicationState.GetInstance(this).ResetAlarms();
 		}
 
 		#endregion

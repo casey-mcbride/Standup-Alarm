@@ -25,7 +25,7 @@ namespace StandupAlarm.Models.StandupMessengers
 		public const string UTTERANCE_ID = "ccc6886f-b2e6-4fa3-a3b7-cdf1746d9151";
 
 		public const float INITIAL_PITCH = .8f;
-		public const float PITCH_INCREASE = .6f;
+		public const float PITCH_INCREASE = .45f;
 		public const float INITIAL_SPEACH_RATE = .8f;
 		public const float SPEACH_RATE_INCREASE = .2f;
 
@@ -70,7 +70,6 @@ namespace StandupAlarm.Models.StandupMessengers
 		#endregion
 
 		#region Methods
-
 
 		public void Start()
 		{

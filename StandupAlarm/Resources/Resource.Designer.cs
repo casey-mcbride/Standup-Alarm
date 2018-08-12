@@ -45,7 +45,10 @@ namespace StandupAlarm
 		{
 			
 			// aapt resource value: 0x7f050003
-			public const int buttonStopAlarm = 2131034115;
+			public const int buttonCancelPending = 2131034115;
+			
+			// aapt resource value: 0x7f050004
+			public const int buttonStopAlarm = 2131034116;
 			
 			// aapt resource value: 0x7f050001
 			public const int buttonTestAlarm = 2131034113;
@@ -56,8 +59,8 @@ namespace StandupAlarm
 			// aapt resource value: 0x7f050000
 			public const int switchIsAlarmOn = 2131034112;
 			
-			// aapt resource value: 0x7f050004
-			public const int textStopAlarmTimeToGoOff = 2131034116;
+			// aapt resource value: 0x7f050005
+			public const int textStopAlarmTimeToGoOff = 2131034117;
 			
 			static Id()
 			{

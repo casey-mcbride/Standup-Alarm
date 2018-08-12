@@ -18,4 +18,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/buttonTestStopAlarmActivity" />
+    <Button
+        android:text="Cancel Pending Alarms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonCancelPending" />
 </LinearLayout>

@@ -20,9 +20,9 @@ namespace StandupAlarm.Models
 	{
 		// TODOS
 		// Start the alarm listener on boot
-		// Way to disable the application 
 		// On/off switch by hitting the side buttons?
 		// Add cell tower filter
+		// Restart alarm after it has run
 
 		#region Constants
 
@@ -47,7 +47,7 @@ namespace StandupAlarm.Models
 		/// <summary>
 		/// When the alarm goes off from the start of the day.
 		/// </summary>
-		private static readonly TimeSpan ALARM_TIME_SINCE_DAY_START = TimeSpan.FromHours(11);
+		private static readonly TimeSpan ALARM_START_TIME_OF_DAY = TimeSpan.FromHours(11);
 
 		/// <summary>
 		/// Represents information about the next alarm date.
@@ -72,6 +72,8 @@ namespace StandupAlarm.Models
 			{ DayOfWeek.Wednesday, new AlarmDateOffset(DayOfWeek.Thursday, 1) },
 			{ DayOfWeek.Thursday, new AlarmDateOffset(DayOfWeek.Friday, 1) },
 			{ DayOfWeek.Friday, new AlarmDateOffset(DayOfWeek.Monday, 3) },
+			{ DayOfWeek.Saturday, new AlarmDateOffset(DayOfWeek.Monday, 2) },
+			{ DayOfWeek.Sunday, new AlarmDateOffset(DayOfWeek.Monday, 1) },
 		};
 
 		#endregion
@@ -107,18 +109,48 @@ namespace StandupAlarm.Models
 			return instance;
 		}
 
-		private void setNextAlarm()
+		public void StartAlarm()
 		{
-			//DateTime nextAlarm = determineNextAlarmTime();
+			setAlarmDate(determineNextAlarmTime());
+		}
+
+		/// <summary>
+		/// Cancel any pending test alarms, and if the main alarm is on restarts it.
+		/// </summary>
+		public void ResetAlarms()
+		{
+			Intent intent = createAlarmViewIntent();
+
+			if (StandupAlarm.Persistance.Settings.GetIsAlarmOn(this.applicationContext))
+			{
+				// Overwrite alarms with the main one
+				StartAlarm();
+			}
+			else
+			{
+				//Gets or creates an intent if it exists, then cancels it
+				PendingIntent.GetActivity(applicationContext, 0, intent, PendingIntentFlags.UpdateCurrent).Cancel();
+			}
+		}
+
+		private Intent createAlarmViewIntent()
+		{
+			Intent intent = new Intent(applicationContext, typeof(StopAlarmActivity));
+			intent.SetFlags(ActivityFlags.NewTask);
+			return intent;
 		}
 
 		public void SetAlarmTimer(TimeSpan timeSpan)
 		{
-			Intent intent = new Intent(applicationContext, typeof(StopAlarmActivity));
-			intent.SetFlags(ActivityFlags.NewTask);
+			setAlarmDate(DateTime.Now + timeSpan);
+		}
 
-			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, intent, PendingIntentFlags.CancelCurrent);
-			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, (int)(timeSpan).TotalMilliseconds, pendingIntent);
+		public void setAlarmDate(DateTime alarmTime)
+		{
+			int milliSecondsUntilAlarm = (int)(alarmTime - DateTime.Now).TotalMilliseconds;
+
+			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, createAlarmViewIntent(), PendingIntentFlags.CancelCurrent);
+			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, milliSecondsUntilAlarm, pendingIntent);
 		}
 
 		private static DateTime determineNextAlarmTime()
@@ -128,7 +160,7 @@ namespace StandupAlarm.Models
 			DayOfWeek day = alarmDate.DayOfWeek;
 
 			// If past the alarm time pick the next day
-			if (alarmDate.TimeOfDay > ALARM_TIME_SINCE_DAY_START)
+			if (alarmDate.TimeOfDay > ALARM_START_TIME_OF_DAY)
 			{
 				AlarmDateOffset nextAlarmDay = DAY_OF_WEEK_TO_NEXT_ALARM_DAY[alarmDate.DayOfWeek];
 				alarmDate.AddDays(nextAlarmDay.DaysToNext);
@@ -144,7 +176,7 @@ namespace StandupAlarm.Models
 				alarmDate.AddDays(nextAlarmDay.DaysToNext);
 			}
 
-			alarmDate = alarmDate.Add(ALARM_TIME_SINCE_DAY_START);
+			alarmDate = alarmDate.Add(ALARM_START_TIME_OF_DAY);
 
 			return alarmDate;
 		}
