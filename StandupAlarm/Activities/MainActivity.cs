@@ -39,6 +39,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Button>(Resource.Id.buttonCancelPending); }
 		}
 
+		private TextView TextNextAlarmTime
+		{
+			get { return FindViewById<TextView>(Resource.Id.textNextAlarmTime); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -55,11 +60,22 @@ namespace StandupAlarm.Activities
 
 			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
 			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
+
+			syncAlarmTimeView();
 		}
 
 		#endregion
 
 		#region Methods
+
+		private void syncAlarmTimeView()
+		{
+			Nullable<DateTime> nextTime = Settings.GetNextAlarmTime(this);
+			if (nextTime.HasValue)
+				TextNextAlarmTime.Text = nextTime.Value.ToString();
+			else
+				TextNextAlarmTime.Text = "No alarm set";
+		}
 
 		#endregion
 
@@ -75,6 +91,8 @@ namespace StandupAlarm.Activities
 				ApplicationState.GetInstance(this).StartAlarm();
 			else
 				ApplicationState.GetInstance(this).ResetAlarms();
+
+			syncAlarmTimeView();
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
@@ -83,6 +101,8 @@ namespace StandupAlarm.Activities
 			Toast.MakeText(this, string.Format("Starting test in {0} seconds", alarmTimer.TotalSeconds), ToastLength.Short).Show();
 
 			ApplicationState.GetInstance(this).SetAlarmTimer(alarmTimer);
+
+			syncAlarmTimeView();
 		}
 
 		private void TestStopAlarmActivity_Click(object sender, EventArgs e)
@@ -93,6 +113,8 @@ namespace StandupAlarm.Activities
 		private void ButtonCancelPendingAlarms_Click(object sender, EventArgs e)
 		{
 			ApplicationState.GetInstance(this).ResetAlarms();
+
+			syncAlarmTimeView();
 		}
 
 		#endregion

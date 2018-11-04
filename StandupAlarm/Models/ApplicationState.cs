@@ -130,6 +130,8 @@ namespace StandupAlarm.Models
 			{
 				//Gets or creates an intent if it exists, then cancels it
 				PendingIntent.GetActivity(applicationContext, 0, intent, PendingIntentFlags.UpdateCurrent).Cancel();
+
+				StandupAlarm.Persistance.Settings.SetNextAlarmTime(null, applicationContext);
 			}
 		}
 
@@ -149,6 +151,8 @@ namespace StandupAlarm.Models
 		{
 			int milliSecondsUntilAlarm = (int)(alarmTime - DateTime.Now).TotalMilliseconds;
 
+			StandupAlarm.Persistance.Settings.SetNextAlarmTime(alarmTime, applicationContext);
+
 			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, createAlarmViewIntent(), PendingIntentFlags.CancelCurrent);
 			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, milliSecondsUntilAlarm, pendingIntent);
 		}
@@ -163,7 +167,7 @@ namespace StandupAlarm.Models
 			if (alarmDate.TimeOfDay > ALARM_START_TIME_OF_DAY)
 			{
 				AlarmDateOffset nextAlarmDay = DAY_OF_WEEK_TO_NEXT_ALARM_DAY[alarmDate.DayOfWeek];
-				alarmDate.AddDays(nextAlarmDay.DaysToNext);
+				alarmDate = alarmDate.AddDays(nextAlarmDay.DaysToNext);
 			}
 
 			// Strip the time
@@ -173,7 +177,7 @@ namespace StandupAlarm.Models
 			if((alarmDate - WEDNESDAY_TO_SKIP).Days % 14 == 0)
 			{
 				AlarmDateOffset nextAlarmDay = DAY_OF_WEEK_TO_NEXT_ALARM_DAY[alarmDate.DayOfWeek];
-				alarmDate.AddDays(nextAlarmDay.DaysToNext);
+				alarmDate = alarmDate.AddDays(nextAlarmDay.DaysToNext);
 			}
 
 			alarmDate = alarmDate.Add(ALARM_START_TIME_OF_DAY);

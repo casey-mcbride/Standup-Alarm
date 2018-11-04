@@ -21,9 +21,14 @@ namespace StandupAlarm.Persistance
 
 		private const string IS_ALARM_ON_KEY = "IsAlarmOn";
 
+		private const string NEXT_ALARM_TIME_KEY = "NextAlarmTime";
+
+		private static readonly long EMPTY_DATE_TICKS = 0;
+
 		private static readonly Dictionary<string, object> defaultSettingsValues = new Dictionary<string, object>()
 		{
-			{IS_ALARM_ON_KEY, true }
+			{IS_ALARM_ON_KEY, true },
+			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
 		};
 
 		#region Helper methods
@@ -75,6 +80,32 @@ namespace StandupAlarm.Persistance
 			using(ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutBoolean(settingKey, isOn);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static Nullable<DateTime> GetNextAlarmTime(Context context)
+		{
+			long ticks = getSetting<long>(NEXT_ALARM_TIME_KEY, context);
+			if (ticks == EMPTY_DATE_TICKS)
+				return null;
+			else
+				return new DateTime(ticks);
+		}
+
+		public static void SetNextAlarmTime(Nullable<DateTime> time, Context context)
+		{
+			long ticks = EMPTY_DATE_TICKS;
+			if (time.HasValue)
+				ticks = time.Value.Ticks;
+
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(NEXT_ALARM_TIME_KEY, context);
+			using(ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutLong(settingKey, ticks);
 				bool commitSuccess = editor.Commit();
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");
