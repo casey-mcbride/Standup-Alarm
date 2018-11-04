@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using StandupAlarm.Activities;
+using StandupAlarm.Persistance;
 
 namespace StandupAlarm.Models
 {
@@ -101,6 +102,17 @@ namespace StandupAlarm.Models
 
 		#region Methods
 
+		/// <summary>
+		/// Refreshes the state of the next alarm.
+		/// </summary>
+		public void SyncNextAlarm ()
+		{
+			if (Settings.GetIsAlarmOn(applicationContext))
+				StartAlarm();
+			else
+				ResetAlarms();
+		}
+
 		public static ApplicationState GetInstance(Context applicationContext)
 		{
 			if (instance == null)
@@ -121,7 +133,7 @@ namespace StandupAlarm.Models
 		{
 			Intent intent = createAlarmViewIntent();
 
-			if (StandupAlarm.Persistance.Settings.GetIsAlarmOn(this.applicationContext))
+			if (Settings.GetIsAlarmOn(this.applicationContext))
 			{
 				// Overwrite alarms with the main one
 				StartAlarm();

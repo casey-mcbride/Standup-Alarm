@@ -23,12 +23,15 @@ namespace StandupAlarm.Persistance
 
 		private const string NEXT_ALARM_TIME_KEY = "NextAlarmTime";
 
+		private const string DEBUG_MESSAGE_KEY = "DebugMessage";
+
 		private static readonly long EMPTY_DATE_TICKS = 0;
 
 		private static readonly Dictionary<string, object> defaultSettingsValues = new Dictionary<string, object>()
 		{
 			{IS_ALARM_ON_KEY, true },
 			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
+			{DEBUG_MESSAGE_KEY, string.Empty },
 		};
 
 		#region Helper methods
@@ -106,6 +109,24 @@ namespace StandupAlarm.Persistance
 			using(ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutLong(settingKey, ticks);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static string GetDebugMessage(Context context)
+		{
+			return getSetting<string>(DEBUG_MESSAGE_KEY, context);
+		}
+
+		public static void SetDebugMessage(string message, Context context)
+		{
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(DEBUG_MESSAGE_KEY, context);
+			using(ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutString(settingKey, message);
 				bool commitSuccess = editor.Commit();
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");

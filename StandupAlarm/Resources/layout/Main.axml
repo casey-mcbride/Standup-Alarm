@@ -9,7 +9,7 @@
         android:id="@+id/switchIsAlarmOn"
         android:text="Alarm On" />
     <TextView
-        android:text="Medium Text"
+        android:text="Next Alarm Time"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,4 +29,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/buttonCancelPending" />
+    <TextView
+        android:text="Debug Message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textDebugMessage" />
 </LinearLayout>

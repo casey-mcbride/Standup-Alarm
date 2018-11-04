@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Activities\MainActivity.cs" />
+    <Compile Include="BroadcastReceivers\BootCompletedBroadcastMessageReceiver.cs" />
     <Compile Include="Models\ApplicationState.cs" />
     <Compile Include="Models\StandupMessengers\IStandupMessenger.cs" />
     <Compile Include="Models\StandupMessengers\MessengerFactory.cs" />

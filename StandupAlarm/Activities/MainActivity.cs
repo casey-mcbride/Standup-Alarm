@@ -24,6 +24,7 @@ namespace StandupAlarm.Activities
 		{
 			get { return FindViewById<Switch>(Resource.Id.switchIsAlarmOn); }
 		}
+
 		private Button ButtonTestAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestAlarm); }
@@ -44,6 +45,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<TextView>(Resource.Id.textNextAlarmTime); }
 		}
 
+		private TextView TextDebugMessage
+		{
+			get { return FindViewById<TextView>(Resource.Id.textDebugMessage); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -62,6 +68,8 @@ namespace StandupAlarm.Activities
 			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
 
 			syncAlarmTimeView();
+
+			TextDebugMessage.Text = Settings.GetDebugMessage(this);
 		}
 
 		#endregion
@@ -85,12 +93,7 @@ namespace StandupAlarm.Activities
 		{
 			Settings.SetIsOn(e.IsChecked, this);
 
-			// TODO(Casey): Move this to some global startup place
-			// Update the apps timer
-			if (Settings.GetIsAlarmOn(this))
-				ApplicationState.GetInstance(this).StartAlarm();
-			else
-				ApplicationState.GetInstance(this).ResetAlarms();
+			ApplicationState.GetInstance(this).SyncNextAlarm();
 
 			syncAlarmTimeView();
 		}
