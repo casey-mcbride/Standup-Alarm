@@ -111,12 +111,13 @@ namespace StandupAlarm.Activities
 
 		protected override void OnStop()
 		{
-			this.speechEngine.Stop();
+			cleanup();
 			base.OnStop();
 		}
 
 		protected override void OnDestroy()
 		{
+			cleanup();
 			base.OnDestroy();
 		}
 
@@ -126,12 +127,19 @@ namespace StandupAlarm.Activities
 
 		private void ButtonStopAlarm_Click(object sender, EventArgs e)
 		{
-			// TODO(Casey): Merge all cleanups into one function
+			cleanup();
+			this.Finish();
+		}
 
-			timer.Cancel();
+		private void cleanup()
+		{
+			if(speechEngine != null && speechEngine.IsSpeaking)
+				this.speechEngine.Stop();
+			if (timer != null)
+				timer.Cancel();
 			if (currentMessenger != null)
 				currentMessenger.Stop();
-			this.Finish();
+			ApplicationState.GetInstance(this).SyncNextAlarm();
 		}
 
 		public void OnInit(OperationResult status)
@@ -148,8 +156,15 @@ namespace StandupAlarm.Activities
 				System.Diagnostics.Debug.Assert(currentMessenger == null);
 
 				currentMessenger = MessengerFactory.CreateMessenger(speechEngine, DateTime.Now);
+				currentMessenger.OnCompleted += CurrentMessenger_OnCompleted;
 				currentMessenger.Start();
 			}
+		}
+
+		private void CurrentMessenger_OnCompleted(object sender, EventArgs e)
+		{
+			this.cleanup();
+			this.Finish();
 		}
 
 		#endregion

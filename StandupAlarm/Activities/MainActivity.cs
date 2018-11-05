@@ -85,6 +85,12 @@ namespace StandupAlarm.Activities
 				TextNextAlarmTime.Text = "No alarm set";
 		}
 
+		protected override void OnResume()
+		{
+			base.OnResume();
+			syncAlarmTimeView();
+		}
+
 		#endregion
 
 		#region Event Handlers

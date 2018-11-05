@@ -17,12 +17,9 @@ namespace StandupAlarm.Models.StandupMessengers
 	/// <summary>
 	/// Messenger that repeats a simple phrase a couple times.
 	/// </summary>
-	sealed class SimplePhraseMessenger : IStandupMessenger
+	sealed class SimplePhraseMessenger : UtteranceProgressListener, IStandupMessenger
 	{
 		#region Constants
-
-		// TODO(Casey): Does this need to change for each utterance added to the queue
-		public const string UTTERANCE_ID = "ccc6886f-b2e6-4fa3-a3b7-cdf1746d9151";
 
 		public const float INITIAL_PITCH = .8f;
 		public const float PITCH_INCREASE = .45f;
@@ -44,9 +41,16 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		private int numRepeats;
 
+		/// <summary>
+		/// ID of the last utterance.
+		/// </summary>
+		private Guid lastUtteranceID;
+
 		#endregion
 
 		#region Properties
+
+		public event EventHandler OnCompleted;
 
 		#endregion
 
@@ -73,28 +77,49 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		public void Start()
 		{
+			this.lastUtteranceID = Guid.NewGuid();
+			speechEngine.SetOnUtteranceProgressListener(this);
+
 			for (int i = 0; i < numRepeats - 1; i++)
 			{
 				// Increase the pitch for a comical result
 				speechEngine.SetPitch(INITIAL_PITCH + i * PITCH_INCREASE);
 				speechEngine.SetSpeechRate(INITIAL_SPEACH_RATE + i * SPEACH_RATE_INCREASE);
-				sayThePhrase();
+				sayThePhrase(Guid.NewGuid());
 			}
 
 			speechEngine.SetPitch(INITIAL_PITCH);
 			speechEngine.SetSpeechRate(INITIAL_SPEACH_RATE);
-			sayThePhrase();
+			sayThePhrase(lastUtteranceID);
 		}
 
-		private void sayThePhrase()
+		private void sayThePhrase(Guid id)
 		{
-			speechEngine.Speak(phrase, QueueMode.Add, new Bundle(), UTTERANCE_ID);
-			speechEngine.PlaySilentUtterance((int)pauseTime.TotalMilliseconds, QueueMode.Add, UTTERANCE_ID);
+			speechEngine.Speak(phrase, QueueMode.Add, new Bundle(), id.ToString());
+			speechEngine.PlaySilentUtterance((int)pauseTime.TotalMilliseconds, QueueMode.Add, Guid.NewGuid().ToString());
 		}
 
 		public void Stop()
 		{
 			speechEngine.Stop();
+		}
+
+		public override void OnDone(string utteranceId)
+		{
+			if(utteranceId == lastUtteranceID.ToString())
+			{
+				var eve = OnCompleted;
+				if (eve != null)
+					eve(this, EventArgs.Empty);
+			}
+		}
+
+		public override void OnError(string utteranceId)
+		{
+		}
+
+		public override void OnStart(string utteranceId)
+		{
 		}
 
 		#endregion

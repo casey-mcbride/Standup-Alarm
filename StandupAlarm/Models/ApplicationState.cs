@@ -20,10 +20,8 @@ namespace StandupAlarm.Models
 	class ApplicationState
 	{
 		// TODOS
-		// Start the alarm listener on boot
 		// On/off switch by hitting the side buttons?
 		// Add cell tower filter
-		// Restart alarm after it has run
 
 		#region Constants
 

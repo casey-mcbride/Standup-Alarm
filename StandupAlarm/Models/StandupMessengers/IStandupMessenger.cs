@@ -20,5 +20,7 @@ namespace StandupAlarm.Models.StandupMessengers
 		void Stop();
 
 		void Start();
+
+		event EventHandler OnCompleted;
 	}
 }
