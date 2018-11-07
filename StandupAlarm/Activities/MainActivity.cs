@@ -50,6 +50,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<TextView>(Resource.Id.textDebugMessage); }
 		}
 
+		private EditText TextOneOffMessage
+		{
+			get { return FindViewById<EditText>(Resource.Id.textOneOffMessage); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -67,9 +72,11 @@ namespace StandupAlarm.Activities
 			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
 			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
 
-			syncAlarmTimeView();
-
+			this.TextOneOffMessage.TextChanged += (s, args) => Settings.SetOneOffMessage(TextOneOffMessage.Text, this);
 			TextDebugMessage.Text = Settings.GetDebugMessage(this);
+
+			syncAlarmTimeView();
+			syncOneOffMessage();
 		}
 
 		#endregion
@@ -85,10 +92,16 @@ namespace StandupAlarm.Activities
 				TextNextAlarmTime.Text = "No alarm set";
 		}
 
+		private void syncOneOffMessage()
+		{
+			this.TextOneOffMessage.Text = Settings.GetOneOffMessage(this);
+		}
+
 		protected override void OnResume()
 		{
 			base.OnResume();
 			syncAlarmTimeView();
+			syncOneOffMessage();
 		}
 
 		#endregion

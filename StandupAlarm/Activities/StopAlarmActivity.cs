@@ -30,7 +30,6 @@ namespace StandupAlarm.Activities
 
 		private TextToSpeech speechEngine;
 
-		// TODO(Casey): Add a messenger done event so this view can close itself
 		private IStandupMessenger currentMessenger;
 
 		private CountDownTimer timer;
@@ -155,7 +154,7 @@ namespace StandupAlarm.Activities
 				// Occurs when the speech engine is initialized
 				System.Diagnostics.Debug.Assert(currentMessenger == null);
 
-				currentMessenger = MessengerFactory.CreateMessenger(speechEngine, DateTime.Now);
+				currentMessenger = MessengerFactory.CreateMessenger(speechEngine, DateTime.Now, this);
 				currentMessenger.OnCompleted += CurrentMessenger_OnCompleted;
 				currentMessenger.Start();
 			}

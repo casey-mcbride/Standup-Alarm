@@ -24,6 +24,8 @@ namespace StandupAlarm.Persistance
 		private const string NEXT_ALARM_TIME_KEY = "NextAlarmTime";
 
 		private const string DEBUG_MESSAGE_KEY = "DebugMessage";
+		
+		private const string ONE_OFF_MESSAGE_KEY = "OneOffMessage";
 
 		private static readonly long EMPTY_DATE_TICKS = 0;
 
@@ -32,6 +34,7 @@ namespace StandupAlarm.Persistance
 			{IS_ALARM_ON_KEY, true },
 			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
 			{DEBUG_MESSAGE_KEY, string.Empty },
+			{ONE_OFF_MESSAGE_KEY, string.Empty },
 		};
 
 		#region Helper methods
@@ -125,6 +128,24 @@ namespace StandupAlarm.Persistance
 			ISharedPreferences preferences = getSharedPreferences(context);
 			string settingKey = getSettingsKey(DEBUG_MESSAGE_KEY, context);
 			using(ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutString(settingKey, message);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static string GetOneOffMessage(Context context)
+		{
+			return getSetting<string>(ONE_OFF_MESSAGE_KEY, context);
+		}
+
+		public static void SetOneOffMessage(string message, Context context)
+		{
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(ONE_OFF_MESSAGE_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutString(settingKey, message);
 				bool commitSuccess = editor.Commit();

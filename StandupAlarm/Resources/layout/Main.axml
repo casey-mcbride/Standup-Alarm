@@ -29,6 +29,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/buttonCancelPending" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textOneOffMessage"
+        android:hint="One Off Message"
+        android:singleLine="true" />
     <TextView
         android:text="Debug Message"
         android:layout_width="match_parent"
