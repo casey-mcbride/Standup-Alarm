@@ -25,14 +25,6 @@ namespace StandupAlarm.Models
 
 		#region Constants
 
-		// TODO(Casey): Switch with a flag that tells it to skip next wednesday, maybe?
-		//System.Casey.Debug.Assert(Environment.UserName == "Casey" && Environment.UserDomainName == "Reamde", "Unfinished code that shouldn't have been checked in.");
-
-		/// <summary>
-		/// Wednesday to skip, skip wednesdays every 2 weeks from this relative date.
-		/// </summary>
-		private static readonly DateTime WEDNESDAY_TO_SKIP = DateTime.Parse("Wed 18 April 2018");
-
 		/// <summary>
 		/// How much notice the user gets before the alarm actually goes off.
 		/// </summary>
@@ -183,8 +175,8 @@ namespace StandupAlarm.Models
 			// Strip the time
 			alarmDate = alarmDate.Date;
 
-			// If a forbidden wednesday, pick the next day
-			if((alarmDate - WEDNESDAY_TO_SKIP).Days % 14 == 0)
+			// If 2 weeks from the forbidden day, skip it
+			if((alarmDate - Settings.GetSkippedDate(instance.applicationContext)).Days % 14 == 0)
 			{
 				AlarmDateOffset nextAlarmDay = DAY_OF_WEEK_TO_NEXT_ALARM_DAY[alarmDate.DayOfWeek];
 				alarmDate = alarmDate.AddDays(nextAlarmDay.DaysToNext);

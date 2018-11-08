@@ -27,6 +27,8 @@ namespace StandupAlarm.Persistance
 		
 		private const string ONE_OFF_MESSAGE_KEY = "OneOffMessage";
 
+		private const string SKIPPED_DATE_KEY = "SkippedDate";
+
 		private static readonly long EMPTY_DATE_TICKS = 0;
 
 		private static readonly Dictionary<string, object> defaultSettingsValues = new Dictionary<string, object>()
@@ -35,13 +37,14 @@ namespace StandupAlarm.Persistance
 			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
 			{DEBUG_MESSAGE_KEY, string.Empty },
 			{ONE_OFF_MESSAGE_KEY, string.Empty },
+			{SKIPPED_DATE_KEY, DateTime.Now.Ticks },
 		};
 
 		#region Helper methods
 
 		private static string getAppSettingsKey(Context context)
 		{
-			// TODO(Casey): I've been told to use the application ID, not the package name, but I can't find it
+			// NOTE: I've been told to use the application ID, not the package name, but I can't find it
 			return string.Format("{0}.{1}", context.ApplicationInfo.PackageName, MAIN_PREF_FILE_KEY);
 		}
 
@@ -148,6 +151,31 @@ namespace StandupAlarm.Persistance
 			using (ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutString(settingKey, message);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		/// <summary>
+		/// Date to skip, skip this day of the week every 2 weeks from this relative date.
+		/// </summary>
+		public static DateTime GetSkippedDate(Context context)
+		{
+			long ticks = getSetting<long>(SKIPPED_DATE_KEY, context);
+			return new DateTime(ticks);
+		}
+
+		public static void SetSkippedDate(DateTime date, Context context)
+		{
+			// Strip off the time of day
+			date = date.Date;
+
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(SKIPPED_DATE_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutLong(settingKey, date.Ticks);
 				bool commitSuccess = editor.Commit();
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");

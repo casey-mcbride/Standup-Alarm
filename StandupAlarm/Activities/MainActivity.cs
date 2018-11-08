@@ -4,6 +4,7 @@ using Android.OS;
 using StandupAlarm.Models;
 using System;
 using StandupAlarm.Persistance;
+using System.Collections.Generic;
 
 namespace StandupAlarm.Activities
 {
@@ -55,6 +56,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<EditText>(Resource.Id.textOneOffMessage); }
 		}
 
+		private EditText TextSkippedDate
+		{
+			get { return FindViewById<EditText>(Resource.Id.textSkippedDate); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -75,6 +81,10 @@ namespace StandupAlarm.Activities
 			this.TextOneOffMessage.TextChanged += (s, args) => Settings.SetOneOffMessage(TextOneOffMessage.Text, this);
 			TextDebugMessage.Text = Settings.GetDebugMessage(this);
 
+			this.TextSkippedDate.SetTextIsSelectable(true);
+			this.TextSkippedDate.FocusChange += TextSkippedDate_FocusChange;
+
+			syncSkippedDate();
 			syncAlarmTimeView();
 			syncOneOffMessage();
 		}
@@ -95,6 +105,11 @@ namespace StandupAlarm.Activities
 		private void syncOneOffMessage()
 		{
 			this.TextOneOffMessage.Text = Settings.GetOneOffMessage(this);
+		}
+
+		private void syncSkippedDate()
+		{
+			this.TextSkippedDate.Text = Settings.GetSkippedDate(this).ToString("dddd, dd MMMM yy");
 		}
 
 		protected override void OnResume()
@@ -137,6 +152,39 @@ namespace StandupAlarm.Activities
 			ApplicationState.GetInstance(this).ResetAlarms();
 
 			syncAlarmTimeView();
+		}
+
+
+		private void TextSkippedDate_FocusChange(object sender, Android.Views.View.FocusChangeEventArgs e)
+		{
+			if (!e.HasFocus)
+				return;
+
+			EventHandler<DatePickerDialog.DateSetEventArgs> dateChangedCallback = (s, args) =>
+			{
+				HashSet<DayOfWeek> weekdays = new HashSet<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+				string dateText = TextSkippedDate.Text;
+				DateTime newDate = args.Date;
+				if (weekdays.Contains(newDate.DayOfWeek))
+				{
+					Settings.SetSkippedDate(newDate, this);
+					Toast.MakeText(this, "Date changed", ToastLength.Short).Show();
+					syncSkippedDate();
+
+					ApplicationState.GetInstance(this).ResetAlarms();
+					syncAlarmTimeView();
+				}
+				else
+					Toast.MakeText(this, string.Format("{0} is not a valid weekday", dateText), ToastLength.Short).Show();
+
+				TextSkippedDate.ClearFocus();
+			};
+
+			DateTime now = DateTime.Now;
+
+			DatePickerDialog theD = new DatePickerDialog(this, dateChangedCallback, now.Year, now.Month - 1, now.Day);
+			theD.CancelEvent += (s, eve) => TextSkippedDate.ClearFocus();
+			theD.Show();
 		}
 
 		#endregion

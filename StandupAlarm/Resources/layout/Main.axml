@@ -35,6 +35,11 @@
         android:id="@+id/textOneOffMessage"
         android:hint="One Off Message"
         android:singleLine="true" />
+    <EditText
+        android:inputType="date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textSkippedDate" />
     <TextView
         android:text="Debug Message"
         android:layout_width="match_parent"
