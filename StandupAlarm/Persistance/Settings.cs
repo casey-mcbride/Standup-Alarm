@@ -33,11 +33,11 @@ namespace StandupAlarm.Persistance
 
 		private static readonly Dictionary<string, object> defaultSettingsValues = new Dictionary<string, object>()
 		{
-			{IS_ALARM_ON_KEY, true },
+			{IS_ALARM_ON_KEY, false },
 			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
 			{DEBUG_MESSAGE_KEY, string.Empty },
 			{ONE_OFF_MESSAGE_KEY, string.Empty },
-			{SKIPPED_DATE_KEY, DateTime.Now.Ticks },
+			{SKIPPED_DATE_KEY, DateTime.Now.Date.Ticks },
 		};
 
 		#region Helper methods

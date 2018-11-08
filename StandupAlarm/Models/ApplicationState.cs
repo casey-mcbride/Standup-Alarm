@@ -121,7 +121,6 @@ namespace StandupAlarm.Models
 		/// </summary>
 		public void ResetAlarms()
 		{
-			Intent intent = createAlarmViewIntent();
 
 			if (Settings.GetIsAlarmOn(this.applicationContext))
 			{
@@ -131,6 +130,7 @@ namespace StandupAlarm.Models
 			else
 			{
 				//Gets or creates an intent if it exists, then cancels it
+				Intent intent = createAlarmViewIntent();
 				PendingIntent.GetActivity(applicationContext, 0, intent, PendingIntentFlags.UpdateCurrent).Cancel();
 
 				StandupAlarm.Persistance.Settings.SetNextAlarmTime(null, applicationContext);
