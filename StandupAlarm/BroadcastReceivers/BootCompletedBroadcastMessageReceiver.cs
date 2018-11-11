@@ -20,7 +20,10 @@ namespace StandupAlarm.BroadcastReceivers
 	{
 		public override void OnReceive(Context context, Intent intent)
 		{
-			if (intent.Action == Intent.ActionLockedBootCompleted)
+			// Locked boot completed does not work :-(
+			//if (intent.Action == Intent.ActionLockedBootCompleted)
+
+			if (intent.Action == Intent.ActionBootCompleted)
 			{
 				ApplicationState.GetInstance(context).SyncNextAlarm();
 				Settings.SetDebugMessage(string.Format("App sync'd at {0}", DateTime.Now), context);

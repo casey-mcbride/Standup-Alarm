@@ -5,6 +5,7 @@ using StandupAlarm.Models;
 using System;
 using StandupAlarm.Persistance;
 using System.Collections.Generic;
+using Android;
 
 namespace StandupAlarm.Activities
 {
@@ -110,6 +111,26 @@ namespace StandupAlarm.Activities
 		private void syncSkippedDate()
 		{
 			this.TextSkippedDate.Text = Settings.GetSkippedDate(this).ToString("dddd, dd MMMM yy");
+		}
+
+		protected override void OnStart()
+		{
+			base.OnStart();
+
+			// Verify all the permissions
+			if(Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			{
+				foreach (string permission in ApplicationState.Permissions)
+				{
+					// Check for permissions
+					if(CheckSelfPermission(permission) != Android.Content.PM.Permission.Granted)
+					{
+						Toast.MakeText(this, "All these permssions are required", ToastLength.Short);
+						break;
+
+					}
+				}
+			}
 		}
 
 		protected override void OnResume()

@@ -110,7 +110,8 @@ namespace StandupAlarm.Activities
 
 		protected override void OnStop()
 		{
-			cleanup();
+			if(this.speechEngine != null)
+				this.speechEngine.Stop();
 			base.OnStop();
 		}
 

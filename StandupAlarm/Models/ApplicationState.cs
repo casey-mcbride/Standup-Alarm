@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using Android;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -66,6 +66,22 @@ namespace StandupAlarm.Models
 			{ DayOfWeek.Saturday, new AlarmDateOffset(DayOfWeek.Monday, 2) },
 			{ DayOfWeek.Sunday, new AlarmDateOffset(DayOfWeek.Monday, 1) },
 		};
+
+		public static string[] Permissions 
+		{
+			get
+			{
+				return new string[]
+				{
+					Manifest.Permission.ReceiveBootCompleted,
+					Manifest.Permission.SetAlarm,
+					Manifest.Permission.DevicePower,
+					Manifest.Permission.SystemAlertWindow,
+					Manifest.Permission.Vibrate,
+					Manifest.Permission.WakeLock,
+				};
+			}
+		}
 
 		#endregion
 
