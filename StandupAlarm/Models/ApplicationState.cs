@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Java.Util;
 using StandupAlarm.Activities;
 using StandupAlarm.Persistance;
 
@@ -170,15 +171,20 @@ namespace StandupAlarm.Models
 
 		public void setAlarmDate(DateTime alarmTime)
 		{
-			int milliSecondsUntilAlarm = (int)(alarmTime - DateTime.Now).TotalMilliseconds;
+			Java.Util.Calendar calendar = Java.Util.Calendar.Instance;
+			calendar.Set(CalendarField.Year, alarmTime.Year);
+			calendar.Set(CalendarField.DayOfYear, alarmTime.DayOfYear);
+			calendar.Set(CalendarField.HourOfDay, alarmTime.Hour);
+			calendar.Set(CalendarField.Minute, alarmTime.Minute);
+			calendar.Set(CalendarField.Second, alarmTime.Second);
 
 			StandupAlarm.Persistance.Settings.SetNextAlarmTime(alarmTime, applicationContext);
 
 			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, createAlarmViewIntent(), PendingIntentFlags.CancelCurrent);
-			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, milliSecondsUntilAlarm, pendingIntent);
+			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.RtcWakeup, calendar.TimeInMillis , pendingIntent);
 
-			Settings.AddLogMessage(applicationContext, "Alarm set to go off in {0} milliseconds.\nIts {1} and the target is {2}",
-				milliSecondsUntilAlarm, DateTime.Now, alarmTime);
+			Settings.AddLogMessage(applicationContext, "Alarm target: {0}. Current time: {1}",
+				 alarmTime, DateTime.Now);
 		}
 
 		private static DateTime determineNextAlarmTime()
@@ -187,8 +193,8 @@ namespace StandupAlarm.Models
 
 			DayOfWeek day = alarmDate.DayOfWeek;
 
-			// If past the alarm time pick the next day
-			if (alarmDate.TimeOfDay > ALARM_START_TIME_OF_DAY)
+			// If past the alarm time (or on a weekend) pick the next day
+			if (alarmDate.TimeOfDay > ALARM_START_TIME_OF_DAY || day == DayOfWeek.Saturday || day == DayOfWeek.Sunday)
 			{
 				AlarmDateOffset nextAlarmDay = DAY_OF_WEEK_TO_NEXT_ALARM_DAY[alarmDate.DayOfWeek];
 				alarmDate = alarmDate.AddDays(nextAlarmDay.DaysToNext);
