@@ -8,6 +8,22 @@
         android:layout_height="wrap_content"
         android:id="@+id/switchIsAlarmOn"
         android:text="Alarm On" />
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:text="Show Log"
+            android:id="@+id/buttonShowLog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Switch
+            android:id="@+id/switchRecordLog"
+            android:hint="Record Log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true" />
+    </RelativeLayout>
     <TextView
         android:text="Next Alarm Time"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -39,10 +55,6 @@
         android:inputType="date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textSkippedDate" />
-    <TextView
-        android:text="Debug Message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/textDebugMessage" />
+        android:id="@+id/textSkippedDate"
+        android:hint="Skippable Date" />
 </LinearLayout>

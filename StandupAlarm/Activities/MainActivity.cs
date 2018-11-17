@@ -6,6 +6,8 @@ using System;
 using StandupAlarm.Persistance;
 using System.Collections.Generic;
 using Android;
+using Android.Content;
+using System.Linq;
 
 namespace StandupAlarm.Activities
 {
@@ -27,6 +29,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Switch>(Resource.Id.switchIsAlarmOn); }
 		}
 
+		private Switch SwitchRecordLog
+		{
+			get { return FindViewById<Switch>(Resource.Id.switchRecordLog); }
+		}
+
 		private Button ButtonTestAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestAlarm); }
@@ -42,14 +49,14 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Button>(Resource.Id.buttonCancelPending); }
 		}
 
+		private Button ButtonShowLog
+		{
+			get { return FindViewById<Button>(Resource.Id.buttonShowLog); }
+		}
+
 		private TextView TextNextAlarmTime
 		{
 			get { return FindViewById<TextView>(Resource.Id.textNextAlarmTime); }
-		}
-
-		private TextView TextDebugMessage
-		{
-			get { return FindViewById<TextView>(Resource.Id.textDebugMessage); }
 		}
 
 		private EditText TextOneOffMessage
@@ -72,15 +79,18 @@ namespace StandupAlarm.Activities
 
 			SetContentView(Resource.Layout.Main);
 
+			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
+			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
+
+			ButtonShowLog.Click += ButtonShowLog_Click;
+			SwitchRecordLog.Checked = Settings.GetIsLoggingEnabled(this);
+			SwitchRecordLog.CheckedChange += SwitchRecordLog_CheckedChange;
+
 			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
 			ButtonStopAlarm.Click += TestStopAlarmActivity_Click;
 			ButtonCancelPendingAlarms.Click += ButtonCancelPendingAlarms_Click;
 
-			SwitchIsAlarmOn.Checked = Settings.GetIsAlarmOn(this);
-			SwitchIsAlarmOn.CheckedChange += SwitchIsAlarmOn_CheckedChange;
-
 			this.TextOneOffMessage.TextChanged += (s, args) => Settings.SetOneOffMessage(TextOneOffMessage.Text, this);
-			TextDebugMessage.Text = Settings.GetDebugMessage(this);
 
 			this.TextSkippedDate.SetTextIsSelectable(true);
 			this.TextSkippedDate.FocusChange += TextSkippedDate_FocusChange;
@@ -151,6 +161,21 @@ namespace StandupAlarm.Activities
 			ApplicationState.GetInstance(this).SyncNextAlarm();
 
 			syncAlarmTimeView();
+		}
+
+		private void ButtonShowLog_Click(object sender, EventArgs e)
+		{
+			const char BULLET_POINT = '\u2022';
+			AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
+			dlgAlert.SetMessage(string.Join("\n", Settings.GetLog(this).Reverse().Select(s =>  BULLET_POINT + s)));
+			dlgAlert.SetTitle("Event Log");
+			dlgAlert.SetPositiveButton("OK", null as EventHandler<DialogClickEventArgs>);
+			dlgAlert.Create().Show();
+		}
+
+		private void SwitchRecordLog_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
+		{
+			Settings.SetIsLoggingEnabled(e.IsChecked, this);
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)

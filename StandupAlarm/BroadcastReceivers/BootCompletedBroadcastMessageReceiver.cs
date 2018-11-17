@@ -26,7 +26,7 @@ namespace StandupAlarm.BroadcastReceivers
 			if (intent.Action == Intent.ActionBootCompleted)
 			{
 				ApplicationState.GetInstance(context).SyncNextAlarm();
-				Settings.SetDebugMessage(string.Format("App sync'd at {0}", DateTime.Now), context);
+				Settings.AddLogMessage(context, "App sync'd at {0}", DateTime.Now);
 			}
 		}
 	}

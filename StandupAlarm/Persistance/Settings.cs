@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 using Android.App;
 using Android.Content;
-using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
@@ -17,17 +17,21 @@ namespace StandupAlarm.Persistance
 	/// </summary>
 	public static class Settings
 	{
+		private const int MAX_LOG_MESSAGES = 20;
+
 		private const string MAIN_PREF_FILE_KEY = "MainPreferences";
 
 		private const string IS_ALARM_ON_KEY = "IsAlarmOn";
 
 		private const string NEXT_ALARM_TIME_KEY = "NextAlarmTime";
 
-		private const string DEBUG_MESSAGE_KEY = "DebugMessage";
-		
 		private const string ONE_OFF_MESSAGE_KEY = "OneOffMessage";
 
 		private const string SKIPPED_DATE_KEY = "SkippedDate";
+
+		private const string IS_LOGGING_ENABLED_KEY = "IsLoggingEnabled";
+
+		private const string LOG_KEY = "Log";
 
 		private static readonly long EMPTY_DATE_TICKS = 0;
 
@@ -35,9 +39,10 @@ namespace StandupAlarm.Persistance
 		{
 			{IS_ALARM_ON_KEY, false },
 			{NEXT_ALARM_TIME_KEY, EMPTY_DATE_TICKS },
-			{DEBUG_MESSAGE_KEY, string.Empty },
 			{ONE_OFF_MESSAGE_KEY, string.Empty },
 			{SKIPPED_DATE_KEY, DateTime.Now.Date.Ticks },
+			{IS_LOGGING_ENABLED_KEY, false },
+			{LOG_KEY, string.Empty },
 		};
 
 		#region Helper methods
@@ -121,24 +126,6 @@ namespace StandupAlarm.Persistance
 			}
 		}
 
-		public static string GetDebugMessage(Context context)
-		{
-			return getSetting<string>(DEBUG_MESSAGE_KEY, context);
-		}
-
-		public static void SetDebugMessage(string message, Context context)
-		{
-			ISharedPreferences preferences = getSharedPreferences(context);
-			string settingKey = getSettingsKey(DEBUG_MESSAGE_KEY, context);
-			using(ISharedPreferencesEditor editor = preferences.Edit())
-			{
-				editor.PutString(settingKey, message);
-				bool commitSuccess = editor.Commit();
-				if (!commitSuccess)
-					throw new ApplicationException("Unable to save the settings file");
-			}
-		}
-
 		public static string GetOneOffMessage(Context context)
 		{
 			return getSetting<string>(ONE_OFF_MESSAGE_KEY, context);
@@ -176,6 +163,78 @@ namespace StandupAlarm.Persistance
 			using (ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutLong(settingKey, date.Ticks);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static bool GetIsLoggingEnabled(Context context)
+		{
+			return getSetting<bool>(IS_LOGGING_ENABLED_KEY, context);
+		}
+
+		public static void SetIsLoggingEnabled(bool isLogEnabled, Context context)
+		{
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(IS_LOGGING_ENABLED_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutBoolean(settingKey, isLogEnabled);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static string[] GetLog(Context context)
+		{
+			string logString = getSetting<string>(LOG_KEY, context);
+
+			return logString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+		}
+
+		public static void AddLogMessage(string message, Context context)
+		{
+			if (!GetIsLoggingEnabled(context))
+				return;
+
+			Debug.Assert(!message.Contains(','), "We're doing a comma delimitted string :-(");
+			message = message.Replace(",", "");
+
+			// Strip the log down to the max and add the new message
+			string[] logMessages = GetLog(context);
+			int skipCount = Math.Max(logMessages.Length - MAX_LOG_MESSAGES + 1, 0);
+			string logString = string.Format("{0},{1}", string.Join(",", logMessages.Skip(skipCount)), message);
+
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(LOG_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutString(settingKey, logString);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static void AddLogMessage( Context context, string message, params object[] args)
+		{
+			if (!GetIsLoggingEnabled(context))
+				return;
+
+			AddLogMessage(string.Format(message, args), context);
+		}
+
+		public static void ClearLog(Context context)
+		{
+			string logString = string.Empty;
+
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(LOG_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutString(settingKey, logString);
 				bool commitSuccess = editor.Commit();
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");

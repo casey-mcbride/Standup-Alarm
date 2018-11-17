@@ -7,6 +7,7 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using StandupAlarm.Activities;
@@ -137,11 +138,11 @@ namespace StandupAlarm.Models
 		/// </summary>
 		public void ResetAlarms()
 		{
-
 			if (Settings.GetIsAlarmOn(this.applicationContext))
 			{
 				// Overwrite alarms with the main one
 				StartAlarm();
+				Settings.AddLogMessage("Alarm Started", applicationContext);
 			}
 			else
 			{
@@ -150,6 +151,8 @@ namespace StandupAlarm.Models
 				PendingIntent.GetActivity(applicationContext, 0, intent, PendingIntentFlags.UpdateCurrent).Cancel();
 
 				StandupAlarm.Persistance.Settings.SetNextAlarmTime(null, applicationContext);
+
+				Settings.AddLogMessage("Alarm Cancelled", applicationContext);
 			}
 		}
 
@@ -173,6 +176,9 @@ namespace StandupAlarm.Models
 
 			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, createAlarmViewIntent(), PendingIntentFlags.CancelCurrent);
 			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, milliSecondsUntilAlarm, pendingIntent);
+
+			Settings.AddLogMessage(applicationContext, "Alarm set to go off in {0} milliseconds.\nIts {1} and the target is {2}",
+				milliSecondsUntilAlarm, DateTime.Now, alarmTime);
 		}
 
 		private static DateTime determineNextAlarmTime()
