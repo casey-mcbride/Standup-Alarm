@@ -73,6 +73,11 @@ namespace StandupAlarm.Activities
 
 			ButtonStopAlarm.Click += ButtonStopAlarm_Click;
 
+			// Set the alarm volume to a constant loud volume
+			VolumeControlStream = Stream.Alarm;
+			AudioManager manager = (AudioManager)GetSystemService(Context.AudioService);
+			manager.SetStreamVolume(Stream.Alarm, manager.GetStreamMaxVolume(Stream.Alarm), VolumeNotificationFlags.AllowRingerModes);
+
 			this.speechEngine = new TextToSpeech(this, this);
 
 			TextStartTimeDisplay.Text = ApplicationState.SHUT_OFF_WARNING_TIME.TotalSeconds.ToString(TIME_FORMAT_STRING);
