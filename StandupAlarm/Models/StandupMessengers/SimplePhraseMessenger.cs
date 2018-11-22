@@ -23,8 +23,8 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		public const float INITIAL_PITCH = .8f;
 		public const float PITCH_INCREASE = .45f;
-		public const float INITIAL_SPEACH_RATE = .8f;
-		public const float SPEACH_RATE_INCREASE = .2f;
+		public const float INITIAL_SPEACH_RATE = .75f;
+		public const float SPEACH_RATE_INCREASE = .18f;
 
 		/// <summary>
 		/// The pause between saying the phrase.

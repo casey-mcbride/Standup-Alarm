@@ -11,6 +11,8 @@
         android:minHeight="25px"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+		android:descendantFocusability="beforeDescendants"
+		android:focusableInTouchMode="true"
         android:id="@+id/linearLayout1">
         <Switch
             android:layout_width="match_parent"
