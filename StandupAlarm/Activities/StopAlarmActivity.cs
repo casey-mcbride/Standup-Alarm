@@ -13,6 +13,7 @@ using Android.Views;
 using Android.Widget;
 using StandupAlarm.Models;
 using StandupAlarm.Models.StandupMessengers;
+using StandupAlarm.Persistance;
 
 namespace StandupAlarm.Activities
 {
@@ -58,6 +59,8 @@ namespace StandupAlarm.Activities
 
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
+			Settings.AddLogMessage(this, "Stop screen started: {0}", DateTime.Now);
+
 			// Make this page show evenwhen the phone is locked
 			Window.AddFlags(WindowManagerFlags.ShowWhenLocked);
 			Window.AddFlags(WindowManagerFlags.KeepScreenOn);
@@ -157,6 +160,8 @@ namespace StandupAlarm.Activities
 		{
 			if(voiceReady && timeDone)
 			{
+				Settings.AddLogMessage(this, "Speaking has begun: {0}", DateTime.Now);
+
 				// Occurs when the speech engine is initialized
 				System.Diagnostics.Debug.Assert(currentMessenger == null);
 

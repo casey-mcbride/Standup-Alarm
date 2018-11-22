@@ -39,6 +39,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Button>(Resource.Id.buttonTestAlarm); }
 		}
 
+		private Button ButtonCustomAlarmTest
+		{
+			get { return FindViewById<Button>(Resource.Id.buttonCustomAlarmTest); }
+		}
+
 		private Button ButtonStopAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestStopAlarmActivity); }
@@ -87,6 +92,7 @@ namespace StandupAlarm.Activities
 			SwitchRecordLog.CheckedChange += SwitchRecordLog_CheckedChange;
 
 			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
+			ButtonCustomAlarmTest.Click += ButtonCustomAlarmTest_Click;
 			ButtonStopAlarm.Click += TestStopAlarmActivity_Click;
 			ButtonCancelPendingAlarms.Click += ButtonCancelPendingAlarms_Click;
 
@@ -180,10 +186,38 @@ namespace StandupAlarm.Activities
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
 		{
-			TimeSpan alarmTimer = TimeSpan.FromSeconds(10);
-			Toast.MakeText(this, string.Format("Starting test in {0} seconds", alarmTimer.TotalSeconds), ToastLength.Short).Show();
+			setAlarmToGoOff(TimeSpan.FromSeconds(10));
+		}
 
-			ApplicationState.GetInstance(this).SetAlarmTimer(alarmTimer);
+		private void ButtonCustomAlarmTest_Click(object sender, EventArgs e)
+		{
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+			alert.SetTitle("Set alarm for the future");
+			alert.SetMessage("Enter minutes until alarm goes off");
+
+			// Set an EditText view to get user input 
+			EditText input = new EditText(this);
+			input.InputType = Android.Text.InputTypes.ClassNumber;
+			alert.SetView(input);
+
+			alert.SetPositiveButton("Ok", (object unusedSender, DialogClickEventArgs args) =>
+			{
+				int minutes;
+				if(int.TryParse(input.Text, out minutes) && minutes > 0)
+				{
+					setAlarmToGoOff(TimeSpan.FromMinutes(minutes));
+				}
+			});
+
+			alert.Show();
+		}
+
+		private void setAlarmToGoOff(TimeSpan alarmTime)
+		{
+			Toast.MakeText(this, string.Format("Starting test in {0} seconds", alarmTime.TotalSeconds), ToastLength.Short).Show();
+
+			ApplicationState.GetInstance(this).SetAlarmTimer(alarmTime);
 
 			syncAlarmTimeView();
 		}
