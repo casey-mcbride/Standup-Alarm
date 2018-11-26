@@ -33,6 +33,8 @@ namespace StandupAlarm.Persistance
 
 		private const string LOG_KEY = "Log";
 
+		private const string VALID_CELL_TOWER_IDS_KEY = "ValidCellTowerIDs";
+
 		private static readonly long EMPTY_DATE_TICKS = 0;
 
 		private static readonly Dictionary<string, object> defaultSettingsValues = new Dictionary<string, object>()
@@ -43,6 +45,7 @@ namespace StandupAlarm.Persistance
 			{SKIPPED_DATE_KEY, DateTime.Now.Date.Ticks },
 			{IS_LOGGING_ENABLED_KEY, false },
 			{LOG_KEY, string.Empty },
+			{VALID_CELL_TOWER_IDS_KEY, string.Empty },
 		};
 
 		#region Helper methods
@@ -142,6 +145,31 @@ namespace StandupAlarm.Persistance
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");
 			}
+		}
+
+		public static HashSet<int> GetValidCellTowerIDs(Context context)
+		{
+			string idList = getSetting<string>(VALID_CELL_TOWER_IDS_KEY, context);
+			return new HashSet<int>(idList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(id => int.Parse(id)));
+		}
+
+		public static void SetValidCellTowerIDs(IEnumerable<int> ids, Context context)
+		{
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(VALID_CELL_TOWER_IDS_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				string idList = string.Join(",", ids);
+				editor.PutString(settingKey, idList);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static void ClearValidCellTowerIDs(Context context)
+		{
+			SetValidCellTowerIDs(Enumerable.Empty<int>(), context);
 		}
 
 		/// <summary>

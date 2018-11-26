@@ -9,6 +9,7 @@ using Android.Media;
 using Android.OS;
 using Android.Runtime;
 using Android.Speech.Tts;
+using Android.Telephony;
 using Android.Views;
 using Android.Widget;
 using StandupAlarm.Models;
@@ -59,6 +60,24 @@ namespace StandupAlarm.Activities
 
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
+			base.OnCreate(savedInstanceState);
+
+			// If we have location constraints, make sure we're near them
+			HashSet<int> validIDs = Settings.GetValidCellTowerIDs(this);
+			if(validIDs.Any())
+			{
+				List<int> cellTowerIDsNearby = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
+
+				if(!validIDs.Overlaps(cellTowerIDsNearby))
+				{
+					// Cancel this activity
+					cleanup();
+					Finish();
+					Settings.AddLogMessage(this, "Not near any valid cell towers. {0}", string.Join(", ", cellTowerIDsNearby));
+					return;
+				}
+			}
+
 			Settings.AddLogMessage(this, "Stop screen started: {0}", DateTime.Now);
 
 			// Make this page show evenwhen the phone is locked
@@ -69,8 +88,6 @@ namespace StandupAlarm.Activities
 			Vibrator vb = this.GetSystemService(Java.Lang.Class.FromType(typeof(Vibrator))) as Vibrator;
 			if (vb != null && vb.HasVibrator)
 				vb.Vibrate(VIBRATION_PATTERN, -1);
-
-			base.OnCreate(savedInstanceState);
 
 			SetContentView(Resource.Layout.StopAlarmView);
 

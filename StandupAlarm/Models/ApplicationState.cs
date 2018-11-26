@@ -7,6 +7,7 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
+using Android.Telephony;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -81,6 +82,7 @@ namespace StandupAlarm.Models
 					Manifest.Permission.SystemAlertWindow,
 					Manifest.Permission.Vibrate,
 					Manifest.Permission.WakeLock,
+					Manifest.Permission.AccessCoarseLocation,
 				};
 			}
 		}
@@ -213,6 +215,18 @@ namespace StandupAlarm.Models
 			alarmDate = alarmDate.Add(ALARM_START_TIME_OF_DAY);
 
 			return alarmDate;
+		}
+
+		public List<int> GetNearbyCellTowerIDs()
+		{
+			List<int> cellTowerIDsNearby = new List<int>();
+			TelephonyManager tm = (TelephonyManager)this.applicationContext.GetSystemService(Context.TelephonyService);
+			IEnumerable<CellInfo> cellInfo = tm.AllCellInfo;
+
+			foreach (CellInfoGsm info in cellInfo.OfType<CellInfoGsm>())
+				cellTowerIDsNearby.Add(info.CellIdentity.Cid);
+
+			return cellTowerIDsNearby;
 		}
 
 		#endregion

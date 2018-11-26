@@ -34,6 +34,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Switch>(Resource.Id.switchRecordLog); }
 		}
 
+		private Switch SwitchLocationConstraint
+		{
+			get { return FindViewById<Switch>(Resource.Id.switchLocationConstraint); }
+		}
+
 		private Button ButtonTestAlarm
 		{
 			get { return FindViewById<Button>(Resource.Id.buttonTestAlarm); }
@@ -90,6 +95,9 @@ namespace StandupAlarm.Activities
 			ButtonShowLog.Click += ButtonShowLog_Click;
 			SwitchRecordLog.Checked = Settings.GetIsLoggingEnabled(this);
 			SwitchRecordLog.CheckedChange += SwitchRecordLog_CheckedChange;
+
+			SwitchLocationConstraint.Checked = Settings.GetValidCellTowerIDs(this).Any();
+			SwitchLocationConstraint.CheckedChange += SwitchLocationConstraint_CheckedChange;
 
 			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
 			ButtonCustomAlarmTest.Click += ButtonCustomAlarmTest_Click;
@@ -182,6 +190,28 @@ namespace StandupAlarm.Activities
 		private void SwitchRecordLog_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
 			Settings.SetIsLoggingEnabled(e.IsChecked, this);
+		}
+
+		private void SwitchLocationConstraint_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
+		{
+			if(e.IsChecked)
+			{
+				IEnumerable<int> ids = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
+				if(ids.Any())
+				{
+					Settings.SetValidCellTowerIDs(ids, this);
+					Toast.MakeText(this, string.Format("Restricting alarms to be near {0}", string.Join(", ", ids)), ToastLength.Long).Show();
+				}
+				else
+				{
+					SwitchLocationConstraint.Checked = false;
+					Toast.MakeText(this, "No valid cell tower ids found", ToastLength.Long).Show();
+				}
+			}
+			else
+			{
+				Settings.ClearValidCellTowerIDs(this);
+			}
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
