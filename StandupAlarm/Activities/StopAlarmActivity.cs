@@ -62,11 +62,18 @@ namespace StandupAlarm.Activities
 		{
 			base.OnCreate(savedInstanceState);
 
+			// Make this page show evenw hen the phone is locked
+			Window.AddFlags(WindowManagerFlags.ShowWhenLocked);
+			//Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+			Window.AddFlags(WindowManagerFlags.TurnScreenOn);
+
+			Settings.AddLogMessage(this, "Stop screen started: {0}", DateTime.Now.ToString(ApplicationState.DATE_TIME_TIME_OF_DAY_FORMAT_STRING));
+
 			// If we have location constraints, make sure we're near them
 			HashSet<int> validIDs = Settings.GetValidCellTowerIDs(this);
 			if(validIDs.Any())
 			{
-				List<int> cellTowerIDsNearby = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
+				HashSet<int> cellTowerIDsNearby = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
 
 				if(!validIDs.Overlaps(cellTowerIDsNearby))
 				{
@@ -77,13 +84,6 @@ namespace StandupAlarm.Activities
 					return;
 				}
 			}
-
-			Settings.AddLogMessage(this, "Stop screen started: {0}", DateTime.Now);
-
-			// Make this page show evenwhen the phone is locked
-			Window.AddFlags(WindowManagerFlags.ShowWhenLocked);
-			Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-			Window.AddFlags(WindowManagerFlags.TurnScreenOn);
 
 			Vibrator vb = this.GetSystemService(Java.Lang.Class.FromType(typeof(Vibrator))) as Vibrator;
 			if (vb != null && vb.HasVibrator)
@@ -123,6 +123,7 @@ namespace StandupAlarm.Activities
 
 			public override void OnFinish()
 			{
+				Settings.AddLogMessage(owner, "Time delay finished at {0}", DateTime.Now.ToString("h: mm:ss tt"));
 				owner.TextStartTimeDisplay.Text = "0";
 				owner.timeDone = true;
 				owner.speak();
@@ -169,6 +170,7 @@ namespace StandupAlarm.Activities
 
 		public void OnInit(OperationResult status)
 		{
+			Settings.AddLogMessage(this, "Voice is ready at {0}", DateTime.Now.ToString("h: mm:ss tt"));
 			voiceReady = true;
 			speak();
 		}
@@ -177,8 +179,6 @@ namespace StandupAlarm.Activities
 		{
 			if(voiceReady && timeDone)
 			{
-				Settings.AddLogMessage(this, "Speaking has begun: {0}", DateTime.Now);
-
 				// Occurs when the speech engine is initialized
 				System.Diagnostics.Debug.Assert(currentMessenger == null);
 

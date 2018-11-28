@@ -155,6 +155,9 @@ namespace StandupAlarm.Persistance
 
 		public static void SetValidCellTowerIDs(IEnumerable<int> ids, Context context)
 		{
+			// int.MaxValue means invalid signal
+			ids = ids.Where(id => id != int.MaxValue).Distinct();
+
 			ISharedPreferences preferences = getSharedPreferences(context);
 			string settingKey = getSettingsKey(VALID_CELL_TOWER_IDS_KEY, context);
 			using (ISharedPreferencesEditor editor = preferences.Edit())

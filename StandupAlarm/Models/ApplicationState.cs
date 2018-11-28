@@ -28,6 +28,8 @@ namespace StandupAlarm.Models
 
 		#region Constants
 
+		public const string DATE_TIME_TIME_OF_DAY_FORMAT_STRING = "h: mm:ss tt";
+
 		/// <summary>
 		/// How much notice the user gets before the alarm actually goes off.
 		/// </summary>
@@ -217,14 +219,23 @@ namespace StandupAlarm.Models
 			return alarmDate;
 		}
 
-		public List<int> GetNearbyCellTowerIDs()
+		public HashSet<int> GetNearbyCellTowerIDs()
 		{
-			List<int> cellTowerIDsNearby = new List<int>();
+			HashSet<int> cellTowerIDsNearby = new HashSet<int>();
 			TelephonyManager tm = (TelephonyManager)this.applicationContext.GetSystemService(Context.TelephonyService);
 			IEnumerable<CellInfo> cellInfo = tm.AllCellInfo;
 
 			foreach (CellInfoGsm info in cellInfo.OfType<CellInfoGsm>())
 				cellTowerIDsNearby.Add(info.CellIdentity.Cid);
+			foreach (CellInfoCdma info in cellInfo.OfType<CellInfoCdma>())
+				cellTowerIDsNearby.Add(info.CellIdentity.BasestationId);
+			foreach (CellInfoLte info in cellInfo.OfType<CellInfoLte>())
+				cellTowerIDsNearby.Add(info.CellIdentity.Ci);
+			foreach (CellInfoWcdma info in cellInfo.OfType<CellInfoWcdma>())
+				cellTowerIDsNearby.Add(info.CellIdentity.Cid);
+
+			// Max value means the cell tower is invalid
+			cellTowerIDsNearby.Remove(int.MaxValue);
 
 			return cellTowerIDsNearby;
 		}
