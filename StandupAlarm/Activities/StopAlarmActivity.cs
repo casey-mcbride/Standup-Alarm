@@ -40,6 +40,8 @@ namespace StandupAlarm.Activities
 
 		private bool voiceReady = false;
 
+		private bool wasStopped = false;
+
 		#endregion
 
 		#region Properties
@@ -78,7 +80,7 @@ namespace StandupAlarm.Activities
 				if(!validIDs.Overlaps(cellTowerIDsNearby))
 				{
 					// Cancel this activity
-					cleanup();
+					stopAlarm();
 					Finish();
 					Settings.AddLogMessage(this, "Not near any valid cell towers. {0}", string.Join(", ", cellTowerIDsNearby));
 					return;
@@ -123,7 +125,7 @@ namespace StandupAlarm.Activities
 
 			public override void OnFinish()
 			{
-				Settings.AddLogMessage(owner, "Time delay finished at {0}", DateTime.Now.ToString("h: mm:ss tt"));
+				Settings.AddLogMessage(owner, "Time delay finished at {0}", DateTime.Now.ToString(ApplicationState.DATE_TIME_TIME_OF_DAY_FORMAT_STRING));
 				owner.TextStartTimeDisplay.Text = "0";
 				owner.timeDone = true;
 				owner.speak();
@@ -143,7 +145,7 @@ namespace StandupAlarm.Activities
 
 		protected override void OnDestroy()
 		{
-			cleanup();
+			stopAlarm();
 			base.OnDestroy();
 		}
 
@@ -153,24 +155,29 @@ namespace StandupAlarm.Activities
 
 		private void ButtonStopAlarm_Click(object sender, EventArgs e)
 		{
-			cleanup();
+			stopAlarm();
 			this.Finish();
 		}
 
-		private void cleanup()
+		private void stopAlarm()
 		{
-			if(speechEngine != null && speechEngine.IsSpeaking)
-				this.speechEngine.Stop();
-			if (timer != null)
-				timer.Cancel();
-			if (currentMessenger != null)
-				currentMessenger.Stop();
-			ApplicationState.GetInstance(this).SyncNextAlarm();
+			if(!wasStopped)
+			{
+				wasStopped = true;
+
+				if(speechEngine != null && speechEngine.IsSpeaking)
+					this.speechEngine.Stop();
+				if (timer != null)
+					timer.Cancel();
+				if (currentMessenger != null)
+					currentMessenger.Stop();
+				ApplicationState.GetInstance(this).SyncNextAlarm();
+			}
 		}
 
 		public void OnInit(OperationResult status)
 		{
-			Settings.AddLogMessage(this, "Voice is ready at {0}", DateTime.Now.ToString("h: mm:ss tt"));
+			Settings.AddLogMessage(this, "Voice is ready at {0}", DateTime.Now.ToString(ApplicationState.DATE_TIME_TIME_OF_DAY_FORMAT_STRING));
 			voiceReady = true;
 			speak();
 		}
@@ -190,7 +197,7 @@ namespace StandupAlarm.Activities
 
 		private void CurrentMessenger_OnCompleted(object sender, EventArgs e)
 		{
-			this.cleanup();
+			this.stopAlarm();
 			this.Finish();
 		}
 

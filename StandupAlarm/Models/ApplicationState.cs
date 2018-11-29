@@ -28,7 +28,7 @@ namespace StandupAlarm.Models
 
 		#region Constants
 
-		public const string DATE_TIME_TIME_OF_DAY_FORMAT_STRING = "h: mm:ss tt";
+		public const string DATE_TIME_TIME_OF_DAY_FORMAT_STRING = "h:mm:ss tt";
 
 		/// <summary>
 		/// How much notice the user gets before the alarm actually goes off.
@@ -175,6 +175,10 @@ namespace StandupAlarm.Models
 
 		public void setAlarmDate(DateTime alarmTime)
 		{
+			// If we want to have the voice alarm go off at the exact given time, we need to make sure 
+			// the activity shows up earlier
+			alarmTime.Subtract(SHUT_OFF_WARNING_TIME);
+
 			Java.Util.Calendar calendar = Java.Util.Calendar.Instance;
 			calendar.Set(CalendarField.Year, alarmTime.Year);
 			calendar.Set(CalendarField.DayOfYear, alarmTime.DayOfYear);

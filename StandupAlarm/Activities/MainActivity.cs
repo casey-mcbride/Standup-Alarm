@@ -216,7 +216,7 @@ namespace StandupAlarm.Activities
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
 		{
-			setAlarmToGoOff(TimeSpan.FromSeconds(10));
+			setAlarmToGoOff(TimeSpan.FromSeconds(10) + ApplicationState.SHUT_OFF_WARNING_TIME);
 		}
 
 		private void ButtonCustomAlarmTest_Click(object sender, EventArgs e)

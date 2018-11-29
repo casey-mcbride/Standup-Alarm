@@ -42,7 +42,7 @@ namespace StandupAlarm.Models.StandupMessengers
 				"Derp derp derp derp",
 				"Get up, Bryce",
 				"It's Casey time",
-				"standadarerp",
+				"Stand a day derp",
 				"The cow goes moo",
 				"Insert message here",
 				"Screw up time",
