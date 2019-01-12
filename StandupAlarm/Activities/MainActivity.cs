@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using Android;
 using Android.Content;
 using System.Linq;
+using Android.Content.PM;
+using Android.Runtime;
 
 namespace StandupAlarm.Activities
 {
@@ -141,19 +143,48 @@ namespace StandupAlarm.Activities
 		{
 			base.OnStart();
 
+			verifyPermissions();
+		}
+
+		private void verifyPermissions()
+		{
 			// Verify all the permissions
-			if(Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
 			{
+				List<string> deniedPermissions = new List<string>();
 				foreach (string permission in ApplicationState.Permissions)
 				{
 					// Check for permissions
-					if(CheckSelfPermission(permission) != Android.Content.PM.Permission.Granted)
-					{
-						Toast.MakeText(this, "All these permssions are required", ToastLength.Short);
-						break;
-
-					}
+					if (CheckSelfPermission(permission) != Android.Content.PM.Permission.Granted)
+						deniedPermissions.Add(permission);
 				}
+
+				if(deniedPermissions.Any())
+				{
+					// Callback code to the application that can be handled elsewhere
+					const int FAKE_REQUEST_CODE = 1;
+
+					RequestPermissions(deniedPermissions.ToArray(), FAKE_REQUEST_CODE);
+				}
+
+			}
+		}
+
+		public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
+		{
+			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+			List<string> deniedPermissions = new List<string>();
+			for (int i = 0; i < permissions.Length; i++)
+			{
+				if (grantResults[i] == Permission.Denied)
+					deniedPermissions.Add(permissions[i]);
+			}
+
+			if(deniedPermissions.Any())
+			{
+				string message = string.Format("The following permissions were denied: {0}", string.Join(", ", deniedPermissions));
+
+				Toast.MakeText(this, message, ToastLength.Long).Show();
 			}
 		}
 

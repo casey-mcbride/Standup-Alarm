@@ -88,8 +88,11 @@ namespace StandupAlarm.Activities
 			}
 
 			Vibrator vb = this.GetSystemService(Java.Lang.Class.FromType(typeof(Vibrator))) as Vibrator;
+
+#pragma warning disable 618
 			if (vb != null && vb.HasVibrator)
 				vb.Vibrate(VIBRATION_PATTERN, -1);
+#pragma warning restore 618
 
 			SetContentView(Resource.Layout.StopAlarmView);
 

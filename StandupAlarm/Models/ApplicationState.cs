@@ -80,8 +80,8 @@ namespace StandupAlarm.Models
 				{
 					Manifest.Permission.ReceiveBootCompleted,
 					Manifest.Permission.SetAlarm,
-					Manifest.Permission.DevicePower,
-					Manifest.Permission.SystemAlertWindow,
+					//Manifest.Permission.DevicePower,
+					//Manifest.Permission.SystemAlertWindow,
 					Manifest.Permission.Vibrate,
 					Manifest.Permission.WakeLock,
 					Manifest.Permission.AccessCoarseLocation,

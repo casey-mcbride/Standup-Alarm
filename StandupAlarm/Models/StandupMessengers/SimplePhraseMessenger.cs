@@ -62,7 +62,7 @@ namespace StandupAlarm.Models.StandupMessengers
 			this.phrase = phrase;
 			this.numRepeats = numRepeats;
 			AudioAttributes.Builder b = new AudioAttributes.Builder();
-			b.SetFlags(AudioFlags.LowLatency);
+			b.SetFlags(AudioFlags.AudibilityEnforced);
 			b.SetUsage(AudioUsageKind.Alarm);
 			b.SetContentType(AudioContentType.Speech);
 
