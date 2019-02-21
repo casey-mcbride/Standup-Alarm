@@ -10,6 +10,7 @@ using Android.Content;
 using System.Linq;
 using Android.Content.PM;
 using Android.Runtime;
+using System.Timers;
 
 namespace StandupAlarm.Activities
 {
@@ -18,9 +19,15 @@ namespace StandupAlarm.Activities
 	{
 		#region Constants
 
+		static readonly TimeSpan FIND_IDS_TIMER_POLL_TIME = TimeSpan.FromSeconds(5);
+		static readonly TimeSpan FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME = TimeSpan.FromSeconds(60);
+
 		#endregion
 
 		#region Fields
+
+		Timer findIDsTimer;
+		DateTime findIDsTimerStarted;
 
 		#endregion
 
@@ -79,6 +86,16 @@ namespace StandupAlarm.Activities
 		private EditText TextSkippedDate
 		{
 			get { return FindViewById<EditText>(Resource.Id.textSkippedDate); }
+		}
+
+		private TextView TextTowersFoundsCount
+		{
+			get { return FindViewById<TextView>(Resource.Id.textTowersFoundCount); }
+		}
+
+		private RelativeLayout ContainerSearchForTowersProgressBar
+		{
+			get { return FindViewById<RelativeLayout>(Resource.Id.containerSearchForTowers); }
 		}
 
 		#endregion
@@ -221,28 +238,65 @@ namespace StandupAlarm.Activities
 		private void SwitchRecordLog_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
 			Settings.SetIsLoggingEnabled(e.IsChecked, this);
+			if(!e.IsChecked)
+				Settings.ClearLog(this);
 		}
 
 		private void SwitchLocationConstraint_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
-			if(e.IsChecked)
+			stopTowerSearch();
+
+			ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Gone;
+			if (e.IsChecked)
 			{
-				IEnumerable<int> ids = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
-				if(ids.Any())
+				HashSet<int> ids = new HashSet<int>();
+				findIDsTimer = new Timer
 				{
-					Settings.SetValidCellTowerIDs(ids, this);
-					Toast.MakeText(this, string.Format("Restricting alarms to be near {0}", string.Join(", ", ids)), ToastLength.Long).Show();
-				}
-				else
+					Interval = FIND_IDS_TIMER_POLL_TIME.TotalMilliseconds,
+					AutoReset = true,
+				};
+
+				// Update visible count and show progress bar
+				TextTowersFoundsCount.Text = string.Format("{0} Towers Found", ids.Count);
+				ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Visible;
+
+				findIDsTimer.Elapsed += (s, args) =>
 				{
-					SwitchLocationConstraint.Checked = false;
-					Toast.MakeText(this, "No valid cell tower ids found", ToastLength.Long).Show();
-				}
+					this.RunOnUiThread(() =>
+					{
+						ids.UnionWith(ApplicationState.GetInstance(this).GetNearbyCellTowerIDs());
+						Settings.SetValidCellTowerIDs(ids, this);
+						TextTowersFoundsCount.Text = string.Format("{0} Towers Found", ids.Count);
+						Settings.AddLogMessage(this, "Tower IDs found, thus far \"{0}\"", string.Join(", ", ids));
+
+						if (DateTime.Now - findIDsTimerStarted > FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME)
+						{
+							stopTowerSearch();
+
+							// If no ID's turn off the location constraint
+							if(!ids.Any())
+								SwitchLocationConstraint.Checked = false;
+						}
+					});
+				};
+				findIDsTimerStarted = DateTime.Now;
+				findIDsTimer.Start();
 			}
 			else
 			{
 				Settings.ClearValidCellTowerIDs(this);
 			}
+		}
+
+		private void stopTowerSearch()
+		{
+			if (findIDsTimer != null)
+			{
+				findIDsTimer.Stop();
+				findIDsTimer.Dispose();
+				findIDsTimer = null;
+			}
+			ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Gone;
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
@@ -294,7 +348,6 @@ namespace StandupAlarm.Activities
 
 			syncAlarmTimeView();
 		}
-
 
 		private void TextSkippedDate_FocusChange(object sender, Android.Views.View.FocusChangeEventArgs e)
 		{

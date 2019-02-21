@@ -135,7 +135,7 @@ namespace StandupAlarm.Models
 
 		public void StartAlarm()
 		{
-			setAlarmDate(determineNextAlarmTime());
+			SetAlarmDate(determineNextAlarmTime());
 		}
 
 		/// <summary>
@@ -170,10 +170,10 @@ namespace StandupAlarm.Models
 
 		public void SetAlarmTimer(TimeSpan timeSpan)
 		{
-			setAlarmDate(DateTime.Now + timeSpan);
+			SetAlarmDate(DateTime.Now + timeSpan);
 		}
 
-		public void setAlarmDate(DateTime alarmTime)
+		public void SetAlarmDate(DateTime alarmTime)
 		{
 			// If we want to have the voice alarm go off at the exact given time, we need to make sure 
 			// the activity shows up earlier
