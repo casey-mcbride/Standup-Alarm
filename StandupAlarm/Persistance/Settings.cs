@@ -33,6 +33,8 @@ namespace StandupAlarm.Persistance
 
 		private const string LOG_KEY = "Log";
 
+		private const string CONSTRAIN_BY_TOWER_ID_KEY = "ConstrainByTowerID";
+
 		private const string VALID_CELL_TOWER_IDS_KEY = "ValidCellTowerIDs";
 
 		private static readonly long EMPTY_DATE_TICKS = 0;
@@ -45,6 +47,7 @@ namespace StandupAlarm.Persistance
 			{SKIPPED_DATE_KEY, DateTime.Now.Date.Ticks },
 			{IS_LOGGING_ENABLED_KEY, false },
 			{LOG_KEY, string.Empty },
+			{CONSTRAIN_BY_TOWER_ID_KEY, false },
 			{VALID_CELL_TOWER_IDS_KEY, string.Empty },
 		};
 
@@ -141,6 +144,24 @@ namespace StandupAlarm.Persistance
 			using (ISharedPreferencesEditor editor = preferences.Edit())
 			{
 				editor.PutString(settingKey, message);
+				bool commitSuccess = editor.Commit();
+				if (!commitSuccess)
+					throw new ApplicationException("Unable to save the settings file");
+			}
+		}
+
+		public static bool GetConstrainByCellTower(Context context)
+		{
+			return getSetting<bool>(CONSTRAIN_BY_TOWER_ID_KEY, context);
+		}
+
+		public static void SetConstrainByCellTower(bool constrainByCellTower, Context context)
+		{
+			ISharedPreferences preferences = getSharedPreferences(context);
+			string settingKey = getSettingsKey(CONSTRAIN_BY_TOWER_ID_KEY, context);
+			using (ISharedPreferencesEditor editor = preferences.Edit())
+			{
+				editor.PutBoolean(settingKey, constrainByCellTower);
 				bool commitSuccess = editor.Commit();
 				if (!commitSuccess)
 					throw new ApplicationException("Unable to save the settings file");

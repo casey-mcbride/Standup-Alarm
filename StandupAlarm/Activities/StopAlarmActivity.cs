@@ -72,9 +72,9 @@ namespace StandupAlarm.Activities
 			Settings.AddLogMessage(this, "Stop screen started: {0}", DateTime.Now.ToString(ApplicationState.DATE_TIME_TIME_OF_DAY_FORMAT_STRING));
 
 			// If we have location constraints, make sure we're near them
-			HashSet<int> validIDs = Settings.GetValidCellTowerIDs(this);
-			if(validIDs.Any())
+			if(Settings.GetConstrainByCellTower(this))
 			{
+				HashSet<int> validIDs = Settings.GetValidCellTowerIDs(this);
 				HashSet<int> cellTowerIDsNearby = ApplicationState.GetInstance(this).GetNearbyCellTowerIDs();
 
 				if(!validIDs.Overlaps(cellTowerIDsNearby))

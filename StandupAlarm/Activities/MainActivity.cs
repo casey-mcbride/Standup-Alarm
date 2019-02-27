@@ -20,7 +20,10 @@ namespace StandupAlarm.Activities
 		#region Constants
 
 		static readonly TimeSpan FIND_IDS_TIMER_POLL_TIME = TimeSpan.FromSeconds(5);
-		static readonly TimeSpan FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME = TimeSpan.FromSeconds(60);
+		static readonly TimeSpan MAX_FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME = TimeSpan.FromMinutes(5);
+
+		public const string START_TOWER_SEARCH_BUTTON_TEXT = "Start Search";
+		public const string STOP_TOWER_SEARCH_BUTTON_TEXT = "Stop Search";
 
 		#endregion
 
@@ -93,9 +96,19 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<TextView>(Resource.Id.textTowersFoundCount); }
 		}
 
-		private RelativeLayout ContainerSearchForTowersProgressBar
+		private RelativeLayout ContainerSearchForTowers
 		{
 			get { return FindViewById<RelativeLayout>(Resource.Id.containerSearchForTowers); }
+		}
+
+		private ProgressBar ProgressBarSearchingForTowers
+		{
+			get { return FindViewById<ProgressBar>(Resource.Id.progressBarSearchingForTowers); }
+		}
+
+		private Button ButtonToggleTowerSearch
+		{
+			get { return FindViewById<Button>(Resource.Id.buttonToggleTowerSearch); }
 		}
 
 		#endregion
@@ -115,8 +128,14 @@ namespace StandupAlarm.Activities
 			SwitchRecordLog.Checked = Settings.GetIsLoggingEnabled(this);
 			SwitchRecordLog.CheckedChange += SwitchRecordLog_CheckedChange;
 
-			SwitchLocationConstraint.Checked = Settings.GetValidCellTowerIDs(this).Any();
+			SwitchLocationConstraint.Checked = Settings.GetConstrainByCellTower(this);
 			SwitchLocationConstraint.CheckedChange += SwitchLocationConstraint_CheckedChange;
+			ButtonToggleTowerSearch.Click += ButtonToggleTowerSearchClick;
+			ButtonToggleTowerSearch.Text = START_TOWER_SEARCH_BUTTON_TEXT;
+			ContainerSearchForTowers.Visibility = SwitchLocationConstraint.Checked ? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone;
+			ProgressBarSearchingForTowers.Visibility = Android.Views.ViewStates.Invisible;
+			TextTowersFoundsCount.LongClick += textTowersFoundsCountLongClick;
+			updateCellTowerText();
 
 			ButtonTestAlarm.Click += TestAlarmButton_Clicked;
 			ButtonCustomAlarmTest.Click += ButtonCustomAlarmTest_Click;
@@ -136,6 +155,13 @@ namespace StandupAlarm.Activities
 		#endregion
 
 		#region Methods
+
+		private void updateCellTowerText()
+		{
+			HashSet<int> towers = Settings.GetValidCellTowerIDs(this);
+
+			TextTowersFoundsCount.Text = string.Format("{0} tower(s) found", towers.Count);
+		}
 
 		private void syncAlarmTimeView()
 		{
@@ -212,6 +238,50 @@ namespace StandupAlarm.Activities
 			syncOneOffMessage();
 		}
 
+		private void startTowerSearch()
+		{
+			Settings.ClearValidCellTowerIDs(this);
+			updateCellTowerText();
+
+			HashSet<int> ids = new HashSet<int>();
+			findIDsTimer = new Timer
+			{
+				Interval = FIND_IDS_TIMER_POLL_TIME.TotalMilliseconds,
+				AutoReset = true,
+			};
+
+			findIDsTimer.Elapsed += (s, args) =>
+			{
+				this.RunOnUiThread(() =>
+				{
+					ids.UnionWith(ApplicationState.GetInstance(this).GetNearbyCellTowerIDs());
+					Settings.SetValidCellTowerIDs(ids, this);
+
+					updateCellTowerText();
+
+					// Don't let this run forever
+					if (DateTime.Now - findIDsTimerStarted > MAX_FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME)
+						stopTowerSearch();
+				});
+			};
+			findIDsTimerStarted = DateTime.Now;
+			findIDsTimer.Start();
+			ProgressBarSearchingForTowers.Visibility = Android.Views.ViewStates.Visible;
+			ButtonToggleTowerSearch.Text = STOP_TOWER_SEARCH_BUTTON_TEXT;
+		}
+
+		private void stopTowerSearch()
+		{
+			if (findIDsTimer != null)
+			{
+				findIDsTimer.Stop();
+				findIDsTimer.Dispose();
+				findIDsTimer = null;
+			}
+			ProgressBarSearchingForTowers.Visibility = Android.Views.ViewStates.Invisible;
+			ButtonToggleTowerSearch.Text = START_TOWER_SEARCH_BUTTON_TEXT;
+		}
+
 		#endregion
 
 		#region Event Handlers
@@ -244,59 +314,29 @@ namespace StandupAlarm.Activities
 
 		private void SwitchLocationConstraint_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
+			Settings.SetConstrainByCellTower(SwitchLocationConstraint.Checked, this);
+			this.ContainerSearchForTowers.Visibility = SwitchLocationConstraint.Checked ? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone;
 			stopTowerSearch();
-
-			ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Gone;
-			if (e.IsChecked)
-			{
-				HashSet<int> ids = new HashSet<int>();
-				findIDsTimer = new Timer
-				{
-					Interval = FIND_IDS_TIMER_POLL_TIME.TotalMilliseconds,
-					AutoReset = true,
-				};
-
-				// Update visible count and show progress bar
-				TextTowersFoundsCount.Text = string.Format("{0} Towers Found", ids.Count);
-				ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Visible;
-
-				findIDsTimer.Elapsed += (s, args) =>
-				{
-					this.RunOnUiThread(() =>
-					{
-						ids.UnionWith(ApplicationState.GetInstance(this).GetNearbyCellTowerIDs());
-						Settings.SetValidCellTowerIDs(ids, this);
-						TextTowersFoundsCount.Text = string.Format("{0} Towers Found", ids.Count);
-						Settings.AddLogMessage(this, "Tower IDs found, thus far \"{0}\"", string.Join(", ", ids));
-
-						if (DateTime.Now - findIDsTimerStarted > FIND_NEARBY_TOWERS_TOTAL_SEARCH_TIME)
-						{
-							stopTowerSearch();
-
-							// If no ID's turn off the location constraint
-							if(!ids.Any())
-								SwitchLocationConstraint.Checked = false;
-						}
-					});
-				};
-				findIDsTimerStarted = DateTime.Now;
-				findIDsTimer.Start();
-			}
-			else
-			{
-				Settings.ClearValidCellTowerIDs(this);
-			}
 		}
 
-		private void stopTowerSearch()
+		private void ButtonToggleTowerSearchClick(object sender, EventArgs e)
 		{
 			if (findIDsTimer != null)
-			{
-				findIDsTimer.Stop();
-				findIDsTimer.Dispose();
-				findIDsTimer = null;
-			}
-			ContainerSearchForTowersProgressBar.Visibility = Android.Views.ViewStates.Gone;
+				stopTowerSearch();
+			else
+				startTowerSearch();
+		}
+
+		private void textTowersFoundsCountLongClick(object sender, Android.Views.View.LongClickEventArgs e)
+		{
+			HashSet<int> towers = Settings.GetValidCellTowerIDs(this);
+			string tooltip;
+			if (towers.Any())
+				tooltip = "Found tower IDS: " + string.Join(", ", towers);
+			else
+				tooltip = "No towers found";
+
+			Toast.MakeText(this, tooltip, ToastLength.Long).Show();
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
