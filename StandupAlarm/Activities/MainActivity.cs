@@ -370,9 +370,11 @@ namespace StandupAlarm.Activities
 
 		private void setAlarmToGoOff(TimeSpan alarmTime)
 		{
-			Toast.MakeText(this, string.Format("Starting test in {0} seconds", alarmTime.TotalSeconds), ToastLength.Short).Show();
+			TimeSpan whenToShowStopScreen = alarmTime - ApplicationState.SHUT_OFF_WARNING_TIME;
+			string message = string.Format("Showing stop screen in {0} seconds, alarm to ring in {1} seconds", whenToShowStopScreen.TotalSeconds, alarmTime.TotalSeconds);
+			Toast.MakeText(this, message, ToastLength.Short).Show();
 
-			ApplicationState.GetInstance(this).SetAlarmTimer(alarmTime);
+			ApplicationState.GetInstance(this).SetAlarmTimer(whenToShowStopScreen);
 
 			syncAlarmTimeView();
 		}
