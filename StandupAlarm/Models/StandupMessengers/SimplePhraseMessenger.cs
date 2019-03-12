@@ -62,12 +62,11 @@ namespace StandupAlarm.Models.StandupMessengers
 			this.phrase = phrase;
 			this.numRepeats = numRepeats;
 			AudioAttributes.Builder b = new AudioAttributes.Builder();
-			b.SetFlags(AudioFlags.AudibilityEnforced);
+			b.SetFlags(AudioFlags.LowLatency);
 			b.SetUsage(AudioUsageKind.Alarm);
 			b.SetContentType(AudioContentType.Speech);
 
 			AudioAttributes audioAttributes = b.Build();
-
 			speechEngine.SetAudioAttributes(audioAttributes);
 		}
 
@@ -95,7 +94,9 @@ namespace StandupAlarm.Models.StandupMessengers
 
 		private void sayThePhrase(Guid id)
 		{
-			speechEngine.Speak(phrase, QueueMode.Add, new Bundle(), id.ToString());
+			Bundle arguments = new Bundle();
+			//arguments.PutFloat(Engine.KeyParamVolume, 1.0f);
+			speechEngine.Speak(phrase, QueueMode.Add, arguments, id.ToString());
 			speechEngine.PlaySilentUtterance((int)pauseTime.TotalMilliseconds, QueueMode.Add, Guid.NewGuid().ToString());
 		}
 

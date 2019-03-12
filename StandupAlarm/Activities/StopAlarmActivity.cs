@@ -30,17 +30,16 @@ namespace StandupAlarm.Activities
 
 		#region Fields
 
-		private TextToSpeech speechEngine;
+		TextToSpeech speechEngine;
+		IStandupMessenger currentMessenger;
 
-		private IStandupMessenger currentMessenger;
+		CountDownTimer timer;
+		bool timeDone = false;
+		bool voiceReady = false;
+		bool wasStopped = false;
 
-		private CountDownTimer timer;
-
-		private bool timeDone = false;
-
-		private bool voiceReady = false;
-
-		private bool wasStopped = false;
+		AudioManager audioManager;
+		int originalMediaVolume = int.MinValue;
 
 		#endregion
 
@@ -100,8 +99,9 @@ namespace StandupAlarm.Activities
 
 			// Set the alarm volume to a constant loud volume
 			VolumeControlStream = Stream.Alarm;
-			AudioManager manager = (AudioManager)GetSystemService(Context.AudioService);
-			manager.SetStreamVolume(Stream.Alarm, manager.GetStreamMaxVolume(Stream.Alarm), VolumeNotificationFlags.AllowRingerModes);
+			audioManager = (AudioManager)GetSystemService(Context.AudioService);
+			originalMediaVolume = audioManager.GetStreamVolume(VolumeControlStream);
+			audioManager.SetStreamVolume(VolumeControlStream, audioManager.GetStreamMaxVolume(VolumeControlStream), VolumeNotificationFlags.AllowRingerModes);
 
 			this.speechEngine = new TextToSpeech(this, this);
 
@@ -148,6 +148,8 @@ namespace StandupAlarm.Activities
 
 		protected override void OnDestroy()
 		{
+			if (originalMediaVolume != int.MinValue && audioManager != null)
+				audioManager.SetStreamVolume(VolumeControlStream, originalMediaVolume, VolumeNotificationFlags.AllowRingerModes);
 			stopAlarm();
 			base.OnDestroy();
 		}
