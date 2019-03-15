@@ -11,6 +11,7 @@ using System.Linq;
 using Android.Content.PM;
 using Android.Runtime;
 using System.Timers;
+using Android.Text;
 
 namespace StandupAlarm.Activities
 {
@@ -111,6 +112,11 @@ namespace StandupAlarm.Activities
 			get { return FindViewById<Button>(Resource.Id.buttonToggleTowerSearch); }
 		}
 
+		private Button ButtonManulTowerEntry
+		{
+			get { return FindViewById<Button>(Resource.Id.buttonManualTowerEntry); }
+		}
+
 		#endregion
 
 		#region Initializers
@@ -132,6 +138,7 @@ namespace StandupAlarm.Activities
 			SwitchLocationConstraint.CheckedChange += SwitchLocationConstraint_CheckedChange;
 			ButtonToggleTowerSearch.Click += ButtonToggleTowerSearchClick;
 			ButtonToggleTowerSearch.Text = START_TOWER_SEARCH_BUTTON_TEXT;
+			ButtonManulTowerEntry.Click += ButtonManulTowerEntryClick;
 			ContainerSearchForTowers.Visibility = SwitchLocationConstraint.Checked ? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone;
 			ProgressBarSearchingForTowers.Visibility = Android.Views.ViewStates.Invisible;
 			TextTowersFoundsCount.LongClick += textTowersFoundsCountLongClick;
@@ -160,7 +167,7 @@ namespace StandupAlarm.Activities
 		{
 			HashSet<int> towers = Settings.GetValidCellTowerIDs(this);
 
-			TextTowersFoundsCount.Text = string.Format("{0} tower(s) found", towers.Count);
+			TextTowersFoundsCount.Text = string.Format("{0} tower id(s) used", towers.Count);
 		}
 
 		private void syncAlarmTimeView()
@@ -240,10 +247,9 @@ namespace StandupAlarm.Activities
 
 		private void startTowerSearch()
 		{
-			Settings.ClearValidCellTowerIDs(this);
 			updateCellTowerText();
 
-			HashSet<int> ids = new HashSet<int>();
+			HashSet<int> ids = new HashSet<int>(Settings.GetValidCellTowerIDs(this));
 			findIDsTimer = new Timer
 			{
 				Interval = FIND_IDS_TIMER_POLL_TIME.TotalMilliseconds,
@@ -337,6 +343,53 @@ namespace StandupAlarm.Activities
 				tooltip = "No towers found";
 
 			Toast.MakeText(this, tooltip, ToastLength.Long).Show();
+		}
+
+		private void ButtonManulTowerEntryClick(object sender, EventArgs e)
+		{
+			stopTowerSearch();
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			const char delimitter = ',';
+
+			builder.SetTitle(string.Format("Enter Tower IDs, separated by a \"{0}\"", delimitter));
+
+			// Set up the input
+			EditText input = new EditText(this)
+			{
+				InputType = InputTypes.ClassText,
+				Text = string.Join(delimitter, Settings.GetValidCellTowerIDs(this)),
+			};
+
+			// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+			builder.SetView(input);
+
+			// Set up the buttons
+			builder.SetPositiveButton("OK", (object s, DialogClickEventArgs args) => 
+			{
+				try
+				{
+					string[] stringIDS = input.Text.Split(delimitter, StringSplitOptions.RemoveEmptyEntries);
+					List<int> ids = new List<int>(stringIDS.Length);
+					foreach (string stringID in stringIDS)
+					{
+						int id = int.Parse(stringID);
+						ids.Add(id);
+					}
+
+					Settings.SetValidCellTowerIDs(ids, this);
+					updateCellTowerText();
+				}
+				catch (Exception)
+				{
+					AlertDialog.Builder errorMessageBuilder = new AlertDialog.Builder(this);
+					errorMessageBuilder.SetTitle("Invalid format for ids");
+					errorMessageBuilder.SetPositiveButton("OK", (object notUsedSender, DialogClickEventArgs notUsedArgs) => { });
+					errorMessageBuilder.Show();
+				}
+			});
+			builder.SetNegativeButton("Cancel", (object s, DialogClickEventArgs args) => {  });
+			builder.Show();
 		}
 
 		private void TestAlarmButton_Clicked(object sender, System.EventArgs e)
