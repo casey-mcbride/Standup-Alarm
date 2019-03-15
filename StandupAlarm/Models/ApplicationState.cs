@@ -177,22 +177,22 @@ namespace StandupAlarm.Models
 		{
 			// If we want to have the voice alarm go off at the exact given time, we need to make sure 
 			// the activity shows up earlier
-			alarmTime.Subtract(SHUT_OFF_WARNING_TIME);
+			DateTime stopScreenStartTime = alarmTime.Subtract(SHUT_OFF_WARNING_TIME);
 
 			Java.Util.Calendar calendar = Java.Util.Calendar.Instance;
-			calendar.Set(CalendarField.Year, alarmTime.Year);
-			calendar.Set(CalendarField.DayOfYear, alarmTime.DayOfYear);
-			calendar.Set(CalendarField.HourOfDay, alarmTime.Hour);
-			calendar.Set(CalendarField.Minute, alarmTime.Minute);
-			calendar.Set(CalendarField.Second, alarmTime.Second);
+			calendar.Set(CalendarField.Year, stopScreenStartTime.Year);
+			calendar.Set(CalendarField.DayOfYear, stopScreenStartTime.DayOfYear);
+			calendar.Set(CalendarField.HourOfDay, stopScreenStartTime.Hour);
+			calendar.Set(CalendarField.Minute, stopScreenStartTime.Minute);
+			calendar.Set(CalendarField.Second, stopScreenStartTime.Second);
 
 			StandupAlarm.Persistance.Settings.SetNextAlarmTime(alarmTime, applicationContext);
 
 			PendingIntent pendingIntent = PendingIntent.GetActivity(applicationContext, 0, createAlarmViewIntent(), PendingIntentFlags.CancelCurrent);
 			AlarmManager.FromContext(applicationContext).SetExactAndAllowWhileIdle(AlarmType.RtcWakeup, calendar.TimeInMillis , pendingIntent);
 
-			Settings.AddLogMessage(applicationContext, "Alarm target: {0}. Current time: {1}",
-				 alarmTime, DateTime.Now);
+			Settings.AddLogMessage(applicationContext, "Next Alarm Info:\n\tAlarm target: {0}. \n\tStop Screen Time: {1}. \n\tCurrent time: {2}",
+				 alarmTime, stopScreenStartTime, DateTime.Now);
 		}
 
 		private static DateTime determineNextAlarmTime()
